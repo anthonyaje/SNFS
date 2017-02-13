@@ -4,7 +4,7 @@
  *
  * Compile with:
  *
- *     gcc -Wall client.c `pkg-config fuse3 --cflags --libs` -o client
+ *     g++ -Wall client.cc `pkg-config fuse3 --cflags --libs` -o client -std=c++11
  *
  * ## Source code ##
  * \include client.c
@@ -24,6 +24,8 @@
 #include <dirent.h>
 #include <errno.h>
 #include <unistd.h>
+//#include <grpc++/grpc++.h>
+//#include "helloworld.grpc.pb.h"
 
 static void *client_init(struct fuse_conn_info *conn, 
 				struct fuse_config *cfg){
@@ -59,7 +61,7 @@ static int client_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
 	
 	//todo
     //dp = opendir(path);
-    dp = opendir("/home/a3anthon/cs798-2/");
+    dp = opendir("/home/");
     if (dp == NULL)
         return -errno;
 
@@ -68,7 +70,7 @@ static int client_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
         memset(&st, 0, sizeof(st));
         st.st_ino = de->d_ino;
         st.st_mode = de->d_type << 12;
-        if (filler(buf, de->d_name, &st, 0, 0))
+        if (filler(buf, de->d_name, &st, 0, fuse_fill_dir_flags(0)))
             break;
     }
 
@@ -110,15 +112,17 @@ static int client_read(const char *path, char *buf, size_t size, off_t offset,
     return res;
 }
 
-static struct fuse_operations client_oper = {
-	.init			= client_init,
-	.getattr	= client_getattr,
-	.readdir	= client_readdir,
-	.open		= client_open,
-	.read 		= client_read,
-};
+static struct fuse_operations client_oper;
+
 
 int main(int argc, char* argv[]){
+	client_oper.init = client_init,
+	client_oper.getattr = client_getattr,
+	client_oper.readdir = client_readdir,
+	client_oper.open = client_open,
+	client_oper.read = client_read,
+
+
 	umask(0);
 
 	return fuse_main(argc, argv, &client_oper, NULL);
