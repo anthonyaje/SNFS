@@ -16,7 +16,7 @@
  *
  * Compile with
  *
- *     gcc -Wall passthrough.c `pkg-config fuse3 --cflags --libs` -o passthrough
+ *     gcc -Wall passthrough.cc `pkg-config fuse3 --cflags --libs` -o passthrough
  *
  * ## Source code ##
  * \include passthrough.c
@@ -25,9 +25,7 @@
 
 #define FUSE_USE_VERSION 30
 
-#ifdef HAVE_CONFIG_H
 #include <config.h>
-#endif
 
 #ifdef linux
 /* For pread()/pwrite()/utimensat() */
@@ -43,9 +41,7 @@
 #include <dirent.h>
 #include <errno.h>
 #include <sys/time.h>
-#ifdef HAVE_SETXATTR
 #include <sys/xattr.h>
-#endif
 
 static void *xmp_init(struct fuse_conn_info *conn,
 		      struct fuse_config *cfg)
@@ -112,7 +108,7 @@ static int xmp_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
 		memset(&st, 0, sizeof(st));
 		st.st_ino = de->d_ino;
 		st.st_mode = de->d_type << 12;
-		if (filler(buf, de->d_name, &st, 0, 0))
+		if (filler(buf, de->d_name, &st, 0, fuse_fill_dir_flags(0) ))
 			break;
 	}
 
@@ -247,8 +243,6 @@ static int xmp_truncate(const char *path, off_t size,
 
 	return 0;
 }
-
-#ifdef HAVE_UTIMENSAT
 static int xmp_utimens(const char *path, const struct timespec ts[2],
 		       struct fuse_file_info *fi)
 {
@@ -262,7 +256,6 @@ static int xmp_utimens(const char *path, const struct timespec ts[2],
 
 	return 0;
 }
-#endif
 
 static int xmp_open(const char *path, struct fuse_file_info *fi)
 {
@@ -347,7 +340,6 @@ static int xmp_fsync(const char *path, int isdatasync,
 	return 0;
 }
 
-#ifdef HAVE_POSIX_FALLOCATE
 static int xmp_fallocate(const char *path, int mode,
 			off_t offset, off_t length, struct fuse_file_info *fi)
 {
@@ -368,9 +360,6 @@ static int xmp_fallocate(const char *path, int mode,
 	close(fd);
 	return res;
 }
-#endif
-
-#ifdef HAVE_SETXATTR
 /* xattr operations are optional and can safely be left unimplemented */
 static int xmp_setxattr(const char *path, const char *name, const char *value,
 			size_t size, int flags)
@@ -405,46 +394,39 @@ static int xmp_removexattr(const char *path, const char *name)
 		return -errno;
 	return 0;
 }
-#endif /* HAVE_SETXATTR */
 
-static struct fuse_operations xmp_oper = {
-	.init           = xmp_init,
-	.getattr	= xmp_getattr,
-	.access		= xmp_access,
-	.readlink	= xmp_readlink,
-	.readdir	= xmp_readdir,
-	.mknod		= xmp_mknod,
-	.mkdir		= xmp_mkdir,
-	.symlink	= xmp_symlink,
-	.unlink		= xmp_unlink,
-	.rmdir		= xmp_rmdir,
-	.rename		= xmp_rename,
-	.link		= xmp_link,
-	.chmod		= xmp_chmod,
-	.chown		= xmp_chown,
-	.truncate	= xmp_truncate,
-#ifdef HAVE_UTIMENSAT
-	.utimens	= xmp_utimens,
-#endif
-	.open		= xmp_open,
-	.read		= xmp_read,
-	.write		= xmp_write,
-	.statfs		= xmp_statfs,
-	.release	= xmp_release,
-	.fsync		= xmp_fsync,
-#ifdef HAVE_POSIX_FALLOCATE
-	.fallocate	= xmp_fallocate,
-#endif
-#ifdef HAVE_SETXATTR
-	.setxattr	= xmp_setxattr,
-	.getxattr	= xmp_getxattr,
-	.listxattr	= xmp_listxattr,
-	.removexattr	= xmp_removexattr,
-#endif
-};
+static struct fuse_operations xmp_oper;
 
 int main(int argc, char *argv[])
 {
+	xmp_oper.init           = xmp_init;
+	xmp_oper.getattr	= xmp_getattr;
+	xmp_oper.access		= xmp_access;
+	xmp_oper.readlink	= xmp_readlink;
+	xmp_oper.readdir	= xmp_readdir;
+	xmp_oper.mknod		= xmp_mknod;
+	xmp_oper.mkdir		= xmp_mkdir;
+	xmp_oper.symlink	= xmp_symlink;
+	xmp_oper.unlink		= xmp_unlink;
+	xmp_oper.rmdir		= xmp_rmdir;
+	xmp_oper.rename		= xmp_rename;
+	xmp_oper.link		= xmp_link;
+	xmp_oper.chmod		= xmp_chmod;
+	xmp_oper.chown		= xmp_chown;
+	xmp_oper.truncate	= xmp_truncate;
+	xmp_oper.utimens	= xmp_utimens;
+	xmp_oper.open		= xmp_open;
+	xmp_oper.read		= xmp_read;
+	xmp_oper.write		= xmp_write;
+	xmp_oper.statfs		= xmp_statfs;
+	xmp_oper.release	= xmp_release;
+	xmp_oper.fsync		= xmp_fsync;
+	xmp_oper.fallocate	= xmp_fallocate;
+	xmp_oper.setxattr	= xmp_setxattr;
+	xmp_oper.getxattr	= xmp_getxattr;
+	xmp_oper.listxattr	= xmp_listxattr;
+	xmp_oper.removexattr	= xmp_removexattr;
+
 	umask(0);
 	return fuse_main(argc, argv, &xmp_oper, NULL);
 }
