@@ -58,7 +58,8 @@ static int client_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
     (void) flags;
 	
 	//todo
-    dp = opendir(path);
+    //dp = opendir(path);
+    dp = opendir("/home/a3anthon/cs798-2/");
     if (dp == NULL)
         return -errno;
 

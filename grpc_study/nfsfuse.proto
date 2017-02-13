@@ -1,0 +1,8 @@
+message Message1{
+	string msg = "";
+
+}
+
+service NFS {
+	rpc function (string) returns (string) {}
+}
