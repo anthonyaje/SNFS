@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package nfsfuse;
+
+message SerializeByte {
+	bytes buffer = 1;
+}
+
+message MyString {
+	string msg = 1;
+}
+
+service NFS {
+	rpc function1 (MyString) returns (SerializeByte) {}
+}
