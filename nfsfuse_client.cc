@@ -132,10 +132,10 @@ int main(int argc, char* argv[]){
 	int input = 5;	
 
 
-	const sdata* reply = nfsclient.function1(input);
+	const sdata reply = *nfsclient.function1(input);
 
-	std::cout<<"a "<<reply->a<<std::endl;
-	std::cout<<"b "<<reply->b<<std::endl;
+	std::cout<<"a "<<reply.a<<std::endl;
+	std::cout<<"b "<<reply.b<<std::endl;
 	//std::free(reply);
 
 	return fuse_main(argc, argv, &client_oper, NULL);
