@@ -7,12 +7,7 @@ message SerializeByte {
 }
 
 message String {
-	string str = 1;
-}
-
-message Dirent {
-	uint32 d_ino  = 1; 
-	string d_name = 2;
+	string msg = 1;
 }
 
 /*
@@ -33,11 +28,8 @@ message Stbuf {
 }
 */
 
-
-
 service NFS {
 	rpc function1 (SerializeByte) returns (SerializeByte) {}
 	rpc rpc_lstat(String) returns (SerializeByte) {}
-//	rpc rpc_opendir(String) returns (SerializeByte) {}
-//    rpc rpc_readdir(SerializeByte) returns(Dirent){}	
+	
 }

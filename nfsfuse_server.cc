@@ -4,7 +4,6 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
-#include <dirent.h>
 
 #include <grpc++/grpc++.h>
 
@@ -18,7 +17,6 @@ using grpc::Status;
 using nfsfuse::NFS;
 using nfsfuse::String;
 using nfsfuse::SerializeByte;
-using nfsfuse::Dirent;
 
 using namespace std;
 
@@ -30,49 +28,27 @@ struct sdata{
 class NfsServiceImpl final : public NFS::Service {
 	Status function1(ServerContext* context, const SerializeByte* request,
 					 SerializeByte* reply) override {
-		const sdata* r_data = reinterpret_cast<const sdata*>(request->buffer().c_str());
-	    std::cout<<r_data->a<<std::endl;
-	    std::cout<<r_data->b<<std::endl;
-		
     	sdata s_sdata;
 		s_sdata.a = 100;
 		strcpy(s_sdata.b,"hello");
+		
+		const sdata* r_data = reinterpret_cast<const sdata*>(request->buffer().c_str());
+	    std::cout<<r_data->a<<std::endl;
+	    std::cout<<r_data->b<<std::endl;
 		
 		cout<<sizeof(sdata)<<endl;
 		reply->set_buffer(reinterpret_cast<const char*>(&s_sdata), sizeof(sdata));
 
 	  	return Status::OK;
 	}
-
+/*
 	Status rpc_lstat(ServerContext* context, const String* s, 
 					 SerializeByte* reply) override {
 		struct stat st;
-		int res = lstat(s->str().c_str(), &st);
-	    if(res == -1)
-			return Status::CANCELLED; 
-		reply->set_buffer(reinterpret_cast<const char*>(&st), sizeof(struct stat));	
-
-		return Status::OK;
-	}
-/*
-	Status rpc_opendir(ServerContext* context, const String* s, SerializeByte* reply){
-		DIR *dp;
-		dp = opendir(s->str().c_str());
-		if(dp == NULL)
-			return Status::CANCELLED;
-		reply->set_buffer(reinterpret_cast<const char*>(dp), sizeof(*dp));
-		return Status::OK;
-	}
-	
-	Status rpc_readdir(ServerContext* context, const SerializeByte* dir, Dirent* reply){
-		DIR *dp;
-		dirent* de;
-		dp = reinterpret_cast<const DIR*>(dir.buffer().c_str());
-		readdir(dp);	
+		int res = lstat();
 		
 	}
 */
-
 };
 
 

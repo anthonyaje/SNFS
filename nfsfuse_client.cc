@@ -42,12 +42,14 @@ static int client_getattr(const char *path, struct stat *stbuf,
 {
     (void) fi;
     int res = 0;
-		
-	res = nfsclient.rpc_lstat(path, stbuf);
-	//res = lstat(path, stbuf);
+	
+	//res = nfsclient.rpc_lstat(path, stbuf);
+
+	/*
+	res = lstat(path, stbuf);
     if (res == -1)
         return -errno;
-	
+	*/
     return 0;
 }
 
@@ -55,34 +57,30 @@ static int client_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
                off_t offset, struct fuse_file_info *fi,
                enum fuse_readdir_flags flags)
 {
-/*    DIR *dp;
+    DIR *dp;
     struct dirent *de;
 
     (void) offset;
     (void) fi;
     (void) flags;
 	
+	//todo
     //dp = opendir(path);
-    dp = rpc_opendir(path);
+    dp = opendir("/home/");
     if (dp == NULL)
         return -errno;
 
-    //while ((de = readdir(dp)) != NULL) {
-    while ((de = rpc_readdir(dp)) != NULL) {
+    while ((de = readdir(dp)) != NULL) {
         struct stat st;
         memset(&st, 0, sizeof(st));
         st.st_ino = de->d_ino;
         st.st_mode = de->d_type << 12;
         if (filler(buf, de->d_name, &st, 0, fuse_fill_dir_flags(0)))
             break;
-		//free(de);
     }
 
-	//free(dp);
     closedir(dp);
-*/
     return 0;
-
 }
 
 static int client_open(const char *path, struct fuse_file_info *fi)
@@ -134,8 +132,7 @@ int main(int argc, char* argv[]){
 	int input = 5;	
 
 
-	sdata reply;
-	int ret = nfsclient.function1(input, &reply);
+	const sdata reply = *nfsclient.function1(input);
 
 	std::cout<<"a "<<reply.a<<std::endl;
 	std::cout<<"b "<<reply.b<<std::endl;
