@@ -27,6 +27,9 @@
 
 #include "NfsClient.h"
 
+NfsClient nfsclient(grpc::CreateChannel(
+  "0.0.0.0:50051", grpc::InsecureChannelCredentials()));
+
 static void *client_init(struct fuse_conn_info *conn, 
 				struct fuse_config *cfg){
 	(void) conn;
@@ -40,11 +43,13 @@ static int client_getattr(const char *path, struct stat *stbuf,
     (void) fi;
     int res = 0;
 	
-	//todo RPC
+	//res = nfsclient.rpc_lstat(path, stbuf);
+
+	/*
 	res = lstat(path, stbuf);
     if (res == -1)
         return -errno;
-
+	*/
     return 0;
 }
 
@@ -126,12 +131,12 @@ int main(int argc, char* argv[]){
 	
 	int input = 5;	
 
-	NfsClient nfsclient(grpc::CreateChannel(
-      "0.0.0.0:50051", grpc::InsecureChannelCredentials()));
 
-	std::string reply = nfsclient.function1(input);
+	const sdata* reply = nfsclient.function1(input);
 
-	std::cout<<reply<<std::endl;
+	std::cout<<"a "<<reply->a<<std::endl;
+	std::cout<<"b "<<reply->b<<std::endl;
+	//std::free(reply);
 
 	return fuse_main(argc, argv, &client_oper, NULL);
 }

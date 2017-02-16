@@ -1,5 +1,5 @@
 CXX = g++
-CPPFLAGS += -I/usr/local/include -pthread `pkg-config fuse3 --cflags --libs`
+CPPFLAGS += -I/usr/local/include -g -pthread `pkg-config fuse3 --cflags --libs`
 CXXFLAGS += -std=c++11
 LDFLAGS += -L/usr/local/lib `pkg-config grpc++ grpc fuse3 --cflags --libs`       \
            -Wl,--no-as-needed -lgrpc++_reflection -Wl,--as-needed \
@@ -8,13 +8,14 @@ PROTOC = protoc
 GRPC_CPP_PLUGIN = grpc_cpp_plugin
 GRPC_CPP_PLUGIN_PATH ?= `which $(GRPC_CPP_PLUGIN)`
 
+
 PROTOS_PATH = ./
 
 vpath %.proto $(PROTOS_PATH)
 
 all: system-check nfsfuse_client nfsfuse_server
 
-nfsfuse_client: nfsfuse.pb.o nfsfuse.grpc.pb.o nfsfuse_client.o
+nfsfuse_client: nfsfuse.pb.o nfsfuse.grpc.pb.o nfsfuse_client.o 
 	$(CXX) $^ $(LDFLAGS) -o $@
 
 nfsfuse_server: nfsfuse.pb.o nfsfuse.grpc.pb.o nfsfuse_server.o
