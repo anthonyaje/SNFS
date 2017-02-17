@@ -55,31 +55,13 @@ static int client_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
                off_t offset, struct fuse_file_info *fi,
                enum fuse_readdir_flags flags)
 {
-/*    DIR *dp;
+    DIR *dp;
     struct dirent *de;
     (void) offset;
     (void) fi;
     (void) flags;
 	
-    //dp = opendir(path);
-    dp = rpc_opendir(path);
-    if (dp == NULL)
-        return -errno;
-    //while ((de = readdir(dp)) != NULL) {
-    while ((de = rpc_readdir(dp)) != NULL) {
-        struct stat st;
-        memset(&st, 0, sizeof(st));
-        st.st_ino = de->d_ino;
-        st.st_mode = de->d_type << 12;
-        if (filler(buf, de->d_name, &st, 0, fuse_fill_dir_flags(0)))
-            break;
-		//free(de);
-    }
-	//free(dp);
-    closedir(dp);
-*/
-    return 0;
-
+    return nfsclient.rpc_readdir(path, buf, filler);
 }
 
 static int client_open(const char *path, struct fuse_file_info *fi)

@@ -37,7 +37,8 @@ message Stbuf {
 
 service NFS {
 	rpc function1 (SerializeByte) returns (SerializeByte) {}
-	rpc rpc_lstat(String) returns (SerializeByte) {}
+	rpc nfsfuse_lstat(String) returns (SerializeByte) {}
+	rpc nfsfuse_readdir(String) returns (Dirent) {}
 //	rpc rpc_opendir(String) returns (SerializeByte) {}
 //    rpc rpc_readdir(SerializeByte) returns(Dirent){}	
 }

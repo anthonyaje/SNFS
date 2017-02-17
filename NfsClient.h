@@ -53,7 +53,7 @@ class NfsClient {
 	ClientContext context;
 	String p;
 	p.set_str(path);
-	Status status = stub_->rpc_lstat(&context, p, &result);
+	Status status = stub_->nfsfuse_lstat(&context, p, &result);
 	if (status.ok()) {
       *output = *reinterpret_cast<const struct stat*> (result.buffer().c_str());	
 	  return 0;
@@ -63,6 +63,32 @@ class NfsClient {
       return -1;
     }
   }
+  
+  int rpc_readdir(string p, void *buf, fuse_fill_dir_t filler){
+	String path;
+	path.set_str(p);
+	Dirent result;
+	dirent de;
+	Status status;
+	ClientContext ctx;
+    
+	status = stub_->nfsfuse_readdir(&ctx, path, &result);
+	while (status.ok()) {
+        struct stat st;
+		de.d_ino = result.d_ino();
+		strcpy(de.d_name, result.d_name().c_str());
+
+        memset(&st, 0, sizeof(st));
+        st.st_ino = de.d_ino;
+        st.st_mode = de.d_type << 12;
+        if (filler(buf, de.d_name, &st, 0, fuse_fill_dir_flags(0)))
+            break;
+	
+		status = stub_->nfsfuse_readdir(&ctx, path, &result);
+    }
+	return 0;
+  }
+	
 /*
   DIR* rpc_opendir(string path){
 	SerializeByte result;
@@ -81,10 +107,12 @@ class NfsClient {
       return nullptr;
 	}
   }
+
   dirent* rpc_readdir(DIR* dp){
       Dirent res;
 	  SerializeByte req;
 	  ClientContext ctx;
+
 	  req->set_buffer(reinterpret_cast<const char*>(dp), sizeof(*dp));
 	  Status status = stub_->readdir(&context, req, &res);
       if (status.ok()) {
@@ -103,6 +131,14 @@ class NfsClient {
  private:
   std::unique_ptr<NFS::Stub> stub_;
 };
+
+
+
+
+
+
+
+
 
 
 

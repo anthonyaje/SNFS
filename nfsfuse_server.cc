@@ -44,7 +44,7 @@ class NfsServiceImpl final : public NFS::Service {
 	  	return Status::OK;
 	}
 
-	Status rpc_lstat(ServerContext* context, const String* s, 
+	Status nfsfuse_lstat(ServerContext* context, const String* s, 
 					 SerializeByte* reply) override {
 		struct stat st;
 		int res = lstat(s->str().c_str(), &st);
@@ -54,6 +54,25 @@ class NfsServiceImpl final : public NFS::Service {
 
 		return Status::OK;
 	}
+	
+	Status nfsfuse_readdir(ServerContext* context, const String* s,
+						Dirent* reply) override {
+		DIR *dp;
+		struct dirent *de;
+
+		dp = opendir(s->str().c_str());
+		if (dp == NULL)
+			return Status::CANCELLED;
+			
+		de = readdir(dp);
+		reply->set_d_ino(de->d_ino);
+		reply->set_d_name(de->d_name);
+
+		closedir(dp);
+		return Status::OK;
+		
+	}
+
 /*
 	Status rpc_opendir(ServerContext* context, const String* s, SerializeByte* reply){
 		DIR *dp;
