@@ -15,29 +15,28 @@ message Dirent {
 	string d_name = 2;
 }
 
-/*
-message Stbuf {
-	uint32     st_dev;    // ID of device containing file 
-    ino_t     st_ino;     // inode number 
-    uint32    st_mode;    // protection 
-    uint32   st_nlink;    // number of hard links 
-    uid_t     st_uid;     // user ID of owner 
-    gid_t     st_gid;     // group ID of owner 
-    dev_t     st_rdev;    // device ID (if special file) 
-    off_t     st_size;    // total size, in bytes 
-    blksize_t st_blksize; // blocksize for file system I/O 
-    blkcnt_t  st_blocks;  // number of 512B blocks allocated 
-    time_t    st_atime;   // time of last access 
-    time_t    st_mtime;   // time of last modification
-    time_t    st_ctime;   // time of last status change 
+
+message Stat {
+	uint32   dev = 1;    // ID of device containing file 
+    uint32   ino = 2;     // inode number 
+    uint32   mode = 3;   // protection 
+    uint32   nlink = 4;    // number of hard links 
+    uint32     uid = 5;     // user ID of owner 
+    uint32     gid = 6;     // group ID of owner 
+//    uint32     st_rdev=13;    // device ID (if special file) 
+    sint64     size = 7;    // total size, in bytes 
+    sint64 blksize = 8; // blocksize for file system I/O 
+    sint64  blocks = 9;  // number of 512B blocks allocated 
+    uint32    atime = 10;   // time of last access 
+    uint32    mtime = 11;   // time of last modification
+    uint32    ctime = 12;   // time of last status change 
 }
-*/
 
 
 
 service NFS {
 	rpc function1 (SerializeByte) returns (SerializeByte) {}
-	rpc nfsfuse_lstat(String) returns (SerializeByte) {}
+	rpc nfsfuse_lstat(String) returns (Stat) {}
 	rpc nfsfuse_readdir(String) returns (Dirent) {}
 //	rpc rpc_opendir(String) returns (SerializeByte) {}
 //    rpc rpc_readdir(SerializeByte) returns(Dirent){}	

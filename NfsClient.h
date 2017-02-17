@@ -12,6 +12,7 @@ using nfsfuse::NFS;
 using nfsfuse::String;
 using nfsfuse::SerializeByte;
 using nfsfuse::Dirent;
+using nfsfuse::Stat;
 
 using namespace std;
 
@@ -49,13 +50,25 @@ class NfsClient {
   }
   
   int rpc_lstat(string path, struct stat* output){
-	SerializeByte result;
+	Stat result;
 	ClientContext context;
 	String p;
 	p.set_str(path);
 	Status status = stub_->nfsfuse_lstat(&context, p, &result);
 	if (status.ok()) {
-      *output = *reinterpret_cast<const struct stat*> (result.buffer().c_str());	
+      //*output = *reinterpret_cast<const struct stat*> (result.buffer().c_str());	
+		output->st_ino = result.ino();
+		output->st_mode = result.mode();
+		output->st_nlink = result.nlink();
+		output->st_uid = result.uid();
+		output->st_gid = result.gid();
+//		output->st_rdev = result.rdev();
+		output->st_size = result.size();
+		output->st_blksize = result.blksize();
+		output->st_blocks = result.blocks();
+		output->st_atime = result.atime();
+		output->st_mtime = result.mtime();
+		output->st_ctime = result.ctime();
 	  return 0;
     } else {
       std::cout << "error " << status.error_code() << ": " << status.error_message()

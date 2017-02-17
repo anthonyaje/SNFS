@@ -103,12 +103,15 @@ static struct fuse_operations client_oper;
 
 
 int main(int argc, char* argv[]){
-	client_oper.init = client_init,
-	client_oper.getattr = client_getattr,
-	client_oper.readdir = client_readdir,
-	client_oper.open = client_open,
-	client_oper.read = client_read,
+	client_oper.init = client_init;
+	client_oper.getattr = client_getattr;
+	client_oper.readdir = client_readdir;
+	client_oper.open = client_open;
+	client_oper.read = client_read;
 	umask(0);
+
+    struct fuse_args args = FUSE_ARGS_INIT(argc, argv);
+
 	
 	int input = 5;	
 
@@ -120,7 +123,7 @@ int main(int argc, char* argv[]){
 	std::cout<<"b "<<reply.b<<std::endl;
 	//std::free(reply);
 
-	return fuse_main(argc, argv, &client_oper, NULL);
+	return fuse_main(args.argc, args.argv, &client_oper, NULL);
 }
 
 
