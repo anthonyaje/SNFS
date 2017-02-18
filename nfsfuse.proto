@@ -40,5 +40,5 @@ message Stat {
 
 service NFS {
 	rpc nfsfuse_lstat(String) returns (Stat) {}
-	rpc nfsfuse_readdir(String) returns (Dirent) {}
+	rpc nfsfuse_readdir(String) returns (stream Dirent){}
 }

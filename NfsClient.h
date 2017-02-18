@@ -35,18 +35,18 @@ class NfsClient {
 
 	Status status = stub_->nfsfuse_lstat(&context, p, &result);
 	memset(output, 0, sizeof(struct stat));
-//	output->st_ino = result.ino();
+	output->st_ino = result.ino();
 	output->st_mode = result.mode();
 	output->st_nlink = result.nlink();
-//	output->st_uid = result.uid();
-//	output->st_gid = result.gid();
-//	output->st_rdev = result.rdev();
+	output->st_uid = result.uid();
+	output->st_gid = result.gid();
+	//output->st_rdev = result.rdev();
 	output->st_size = result.size();
-//	output->st_blksize = result.blksize();
-//	output->st_blocks = result.blocks();
-//	output->st_atime = result.atime();
-//	output->st_mtime = result.mtime();
-//	output->st_ctime = result.ctime();
+	output->st_blksize = result.blksize();
+	output->st_blocks = result.blocks();
+	output->st_atime = result.atime();
+	output->st_mtime = result.mtime();
+	output->st_ctime = result.ctime();
 	
 	if (result.err() != 0) {
             std::cout << "error " << result.err() << std::endl;
@@ -62,8 +62,10 @@ class NfsClient {
 	dirent de;
 	Status status;
 	ClientContext ctx;
-    
-	while(stub_->nfsfuse_readdir(&ctx, path, &result).ok()){
+	
+	std::unique_ptr<ClientReader<Dirent> >reader(
+		stub_->nfsfuse_readdir(&ctx, path));
+	while(reader->Read(&result)){
             struct stat st;
             memset(&st, 0, sizeof(st));
 
@@ -77,7 +79,9 @@ class NfsClient {
             if (filler(buf, de.d_name, &st, 0, static_cast<fuse_fill_dir_flags>(0)))
                break;
         }
-	
+
+	status = reader->Finish();	
+
 	return result.err();
   }
 	

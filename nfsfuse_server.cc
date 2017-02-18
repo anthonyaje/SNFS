@@ -13,6 +13,7 @@
 using grpc::Server;
 using grpc::ServerBuilder;
 using grpc::ServerContext;
+using grpc::ServerWriter;
 using grpc::Status;
 
 using nfsfuse::NFS;
@@ -43,19 +44,18 @@ class NfsServiceImpl final : public NFS::Service {
 		char server_path[512]={0};
 		translatePath(s->str().c_str(), server_path);
 		int res = lstat(server_path, &st);
-		//reply->set_buffer(reinterpret_cast<const char*>(&st), sizeof(struct stat));	
-		//reply->set_ino(st.st_ino);
+		reply->set_ino(st.st_ino);
 		reply->set_mode(st.st_mode);
 		reply->set_nlink(st.st_nlink);
-		//reply->set_uid(st.st_uid);
-		//reply->set_gid(st.st_gid);
+		reply->set_uid(st.st_uid);
+		/reply->set_gid(st.st_gid);
 		//`reply->set_rdev(st.st_rdev);
 		reply->set_size(st.st_size);
-		//reply->set_blksize(st.st_blksize);
-		//reply->set_blocks(st.st_blocks);
-		//reply->set_atime(st.st_atime);
-		//reply->set_mtime(st.st_mtime);
-		//reply->set_ctime(st.st_ctime);
+		reply->set_blksize(st.st_blksize);
+		reply->set_blocks(st.st_blocks);
+		reply->set_atime(st.st_atime);
+		reply->set_mtime(st.st_mtime);
+		reply->set_ctime(st.st_ctime);
 			
                 if(res == -1){
 		    perror(strerror(errno));
@@ -70,38 +70,33 @@ class NfsServiceImpl final : public NFS::Service {
 	}
 	
 	Status nfsfuse_readdir(ServerContext* context, const String* s,
-						Dirent* reply) override {
+						ServerWriter<Dirent>* writer) override {
 		cout<<"[DEBUG] : readdir: "<<s->str().c_str()<<endl;
 
 		DIR *dp;
 		struct dirent *de;
+		Dirent directory;
 		char server_path[512]={0};
 		translatePath(s->str().c_str(), server_path);
+
 		dp = opendir(server_path);
 		if (dp == NULL){
 			cout<<"[DEBUG] : readdir: "<<"dp == NULL"<<endl;
 			perror(strerror(errno));
-			reply->set_err(errno);
+			directory.set_err(errno);
 			return Status::CANCELLED;
 		}
 			
-		de = readdir(dp);
-		if(de == NULL){
-		    cout<<"[DEBUG] : readdir: "<<"de == NULL"<<endl;
-		    perror(strerror(errno));
-		    reply->set_err(errno);
-		    return Status::CANCELLED;
+		while((de = readdir(dp)) != NULL){
+		    directory.set_dino(de->d_ino);
+		    directory.set_dname(de->d_name);
+		    directory.set_dtype(de->d_type);
+		    writer->Write(directory);
 		}
-		cout<<"[DEBUG] : readdir: "<<"de->d_ino "<<de->d_ino<<endl;
-		cout<<"[DEBUG] : readdir: "<<"de->d_name "<<de->d_name<<endl;
-		cout<<"[DEBUG] : readdir: "<<"de->d_type "<<de->d_type<<endl;
-		reply->set_dino(de->d_ino);
-		reply->set_dname(de->d_name);
-		reply->set_dtype(de->d_type);
-		
+		directory.set_err(0);
+
 		closedir(dp);
 
-		reply->set_err(0);
 		return Status::OK;
 		
 	}
