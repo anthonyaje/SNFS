@@ -5,10 +5,13 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <dirent.h>
+#include <fcntl.h>
 
 #include <grpc++/grpc++.h>
 
 #include "nfsfuse.grpc.pb.h"
+
+#define READ_MAX    10000000 //10MB
 
 using grpc::Server;
 using grpc::ServerBuilder;
@@ -16,11 +19,8 @@ using grpc::ServerContext;
 using grpc::ServerWriter;
 using grpc::Status;
 
-using nfsfuse::NFS;
-using nfsfuse::String;
-using nfsfuse::SerializeByte;
-using nfsfuse::Dirent;
-using nfsfuse::Stat;
+using namespace nfsfuse;
+
 
 using namespace std;
 
@@ -57,7 +57,7 @@ class NfsServiceImpl final : public NFS::Service {
 		reply->set_mtime(st.st_mtime);
 		reply->set_ctime(st.st_ctime);
 			
-                if(res == -1){
+        if(res == -1){
 		    perror(strerror(errno));
 		    reply->set_err(errno);
 		    //return Status::CANCELLED; 
@@ -98,8 +98,62 @@ class NfsServiceImpl final : public NFS::Service {
 		closedir(dp);
 
 		return Status::OK;
-		
 	}
+
+    Status nfsfuse_open(ServerContext* context, const FuseFileInfo* fi_req,
+            FuseFileInfo* fi_reply) override {
+        
+        char server_path[512] = {0};
+        
+        translatePath(fi_req->path().c_str(), server_path);
+		cout<<"[DEBUG] : nfsfuse_open: path "<<server_path<<endl;
+		cout<<"[DEBUG] : nfsfuse_open: flag "<<fi_req->flags()<<endl;
+
+        int fh = open(server_path, fi_req->flags());
+
+		cout<<"[DEBUG] : nfsfuse_open: fh"<<fh<<endl;
+        if(fh == -1){
+            fi_reply->set_err(-1);            
+            return Status::CANCELLED;
+        }
+        else{
+            fi_reply->set_fh(fh);            
+            //close(fh);
+            return Status::OK;
+        }
+    }
+
+    Status nfsfuse_read(ServerContext* context, const ReadRequest* rr, 
+            ReadResult* reply) override {
+        char path[512];
+        char *buf = new char[rr->size()];
+        translatePath(rr->path().c_str(), path);
+		cout<<"[DEBUG] : nfsfuse_read: "<<path<<endl;
+
+
+        int fd = open(path, O_RDONLY);
+		cout<<"[DEBUG] : nfsfuse_read: fd "<<fd<<endl;
+        if (fd == -1){
+            reply->set_bytesread(-1);
+		    perror(strerror(errno));
+            return Status::CANCELLED;
+        }
+
+        int res = pread(fd, buf, rr->size(), rr->offset());
+        if (res == -1){
+		    perror(strerror(errno));
+            return Status::CANCELLED;
+        }
+
+        reply->set_bytesread(res);
+        reply->set_buffer(buf);
+        
+        if(fd>0)
+            close(fd);
+        free(buf);
+        return Status::OK;
+
+    }
 
 };
 

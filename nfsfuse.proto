@@ -36,9 +36,31 @@ message Stat {
     uint32    err = 14; 
 }
 
+message FuseFileInfo{
+    int32 flags = 1;
+    int32 fh = 2;
+    uint32 oldfh = 3;
+    uint64 lockowner = 5;
+    uint32 pollevent = 6;
 
+    uint32 err = 4;
+    string path = 7;
+}
+
+message ReadResult{
+    int32 bytesread = 1;
+    bytes buffer = 2;
+}
+
+message ReadRequest{
+    string path =1;
+    uint32 size =2;
+    int64 offset =3;
+}
 
 service NFS {
 	rpc nfsfuse_lstat(String) returns (Stat) {}
 	rpc nfsfuse_readdir(String) returns (stream Dirent){}
+    rpc nfsfuse_open(FuseFileInfo) returns (FuseFileInfo) {}
+    rpc nfsfuse_read(ReadRequest) returns (ReadResult) {}
 }

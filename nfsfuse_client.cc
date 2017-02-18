@@ -42,7 +42,7 @@ static const struct fuse_opt option_spec[] = {
 
 static void show_help(const char *progname)
 {
-	std::cout<<"usage: "<<progname<<" [options] <mountpoint>\n\n";
+	std::cout<<"usage: "<<progname<<" [-s -d] <mountpoint>\n\n";
 }
 
 static void *client_init(struct fuse_conn_info *conn, 
@@ -71,47 +71,18 @@ static int client_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
                off_t offset, struct fuse_file_info *fi,
                enum fuse_readdir_flags flags)
 {
-    DIR *dp;
-    struct dirent *de;
-    (void) offset;
-    (void) fi;
-    (void) flags;
-	
     return options.nfsclient->rpc_readdir(path, buf, filler);
 }
 
 static int client_open(const char *path, struct fuse_file_info *fi)
 {
-	int res;
-
-	//todo
-    res = open(path, fi->flags);
-    if (res == -1)
-        return -errno;
-
-    close(res);
-    return 0;
-
+    return options.nfsclient->rpc_open(path, fi);
 }
 
 static int client_read(const char *path, char *buf, size_t size, off_t offset,
             struct fuse_file_info *fi)
 {
-    int fd;
-    int res;
-
-    (void) fi;
-	//todo
-    fd = open(path, O_RDONLY);
-    if (fd == -1)
-        return -errno;
-
-    res = pread(fd, buf, size, offset);
-    if (res == -1)
-        res = -errno;
-
-    close(fd);
-    return res;
+    return options.nfsclient->rpc_read(path, buf, size, offset, fi);
 }
 
 static struct client_operations : fuse_operations {
@@ -121,6 +92,7 @@ static struct client_operations : fuse_operations {
         readdir = client_readdir;
         open = client_open;
         read = client_read;
+	
 	
 	/*
 	mkdir	= client_mkdir;
