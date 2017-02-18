@@ -47,10 +47,10 @@ class NfsServiceImpl final : public NFS::Service {
 
 	Status nfsfuse_lstat(ServerContext* context, const String* s, 
 					 Stat* reply) override {
+		cout<<"[DEBUG] : lstat: "<<s->str().c_str()<<endl;
+
 		struct stat st;
-		cout<<"###"<<s->str().c_str()<<"###"<<endl;
 		int res = lstat(s->str().c_str(), &st);
-		cout<<"res lstat "<<res<<endl;
 	    if(res == -1)
 			return Status::CANCELLED; 
 		//reply->set_buffer(reinterpret_cast<const char*>(&st), sizeof(struct stat));	
@@ -72,23 +72,32 @@ class NfsServiceImpl final : public NFS::Service {
 	
 	Status nfsfuse_readdir(ServerContext* context, const String* s,
 						Dirent* reply) override {
+		cout<<"[DEBUG] : readdir: "<<s->str().c_str()<<endl;
+
 		DIR *dp;
 		struct dirent *de;
 
 		dp = opendir(s->str().c_str());
-		if (dp == NULL)
+		if (dp == NULL){
+			cout<<"[DEBUG] : readdir: "<<"dp == NULL"<<endl;
 			return Status::CANCELLED;
+		}
 			
 		de = readdir(dp);
-		if(de == 0 || de != NULL){
+		if(de == 0 || de == NULL){
+		    cout<<"[DEBUG] : readdir: "<<"de == NULL"<<endl;
 		    return Status::CANCELLED;
 		}
+		cout<<"[DEBUG] : readdir: "<<"de->d_ino "<<de->d_ino<<endl;
+		cout<<"[DEBUG] : readdir: "<<"de->d_name "<<de->d_name<<endl;
+		cout<<"[DEBUG] : readdir: "<<"de->d_type "<<de->d_type<<endl;
 		reply->set_dino(de->d_ino);
 		reply->set_dname(de->d_name);
 		reply->set_dtype(de->d_type);
 		
-		cout<<"d_ino "<<reply->dino();
-		cout<<"d_name "<<reply->dname();
+		cout<<"[DEBUG] : readdir: "<<"d_ino "<<reply->dino();
+		cout<<"[DEBUG] : readdir: "<<"d_name "<<reply->dname();
+		cout<<"[DEBUG] : readdir: "<<"d_type "<<reply->dtype();
 
 		closedir(dp);
 		return Status::OK;
