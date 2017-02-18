@@ -57,7 +57,6 @@ class NfsClient {
 
 	Status status = stub_->nfsfuse_lstat(&context, p, &result);
 	memset(output, 0, sizeof(struct stat));
-  //*output = *reinterpret_cast<const struct stat*> (result.buffer().c_str());	
 //	output->st_ino = result.ino();
 	output->st_mode = result.mode();
 	output->st_nlink = result.nlink();
@@ -70,13 +69,12 @@ class NfsClient {
 //	output->st_atime = result.atime();
 //	output->st_mtime = result.mtime();
 //	output->st_ctime = result.ctime();
-	if (status.ok()) {
-	  return 0;
-    } else {
-      std::cout << "error " << status.error_code() << ": " << status.error_message()
-                << std::endl;
-      return -2;
-    }
+	
+	if (result.err() != 0) {
+            std::cout << "error " << result.err() << std::endl;
+        }
+	
+	return result.err();
   }
   
   int rpc_readdir(string p, void *buf, fuse_fill_dir_t filler){
@@ -101,7 +99,7 @@ class NfsClient {
 
             if (filler(buf, result.dname().c_str(), &st, 0, static_cast<fuse_fill_dir_flags>(0)))
                break;
-	
+	    Dirent result;	
 	    status = stub_->nfsfuse_readdir(&ctx, path, &result);
         }
 	return 0;

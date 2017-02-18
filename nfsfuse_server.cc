@@ -28,6 +28,12 @@ struct sdata{
 	char b[10]={};
 };
 
+void translatePath(const char* client_path, char* server_path){
+    strcat(server_path, "./server");
+    strcat(server_path+8, client_path);
+    server_path[strlen(server_path)] = '\0';
+}
+
 class NfsServiceImpl final : public NFS::Service {
 	Status function1(ServerContext* context, const SerializeByte* request,
 					 SerializeByte* reply) override {
@@ -50,9 +56,9 @@ class NfsServiceImpl final : public NFS::Service {
 		cout<<"[DEBUG] : lstat: "<<s->str().c_str()<<endl;
 
 		struct stat st;
-		int res = lstat(s->str().c_str(), &st);
-	    if(res == -1)
-			return Status::CANCELLED; 
+		char server_path[512]={0};
+		translatePath(s->str().c_str(), server_path);
+		int res = lstat(server_path, &st);
 		//reply->set_buffer(reinterpret_cast<const char*>(&st), sizeof(struct stat));	
 		//reply->set_ino(st.st_ino);
 		reply->set_mode(st.st_mode);
@@ -66,7 +72,16 @@ class NfsServiceImpl final : public NFS::Service {
 		//reply->set_atime(st.st_atime);
 		//reply->set_mtime(st.st_mtime);
 		//reply->set_ctime(st.st_ctime);
-		
+			
+                if(res == -1){
+		    perror(strerror(errno));
+		    reply->set_err(errno);
+		    //return Status::CANCELLED; 
+		}
+		else{
+		   reply->set_err(0);
+		}
+	
 		return Status::OK;
 	}
 	

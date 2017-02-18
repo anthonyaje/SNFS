@@ -39,7 +39,7 @@ message Stat {
 
 service NFS {
 	rpc function1 (SerializeByte) returns (SerializeByte) {}
-	rpc nfsfuse_lstat(String) returns (SerializeByte) {}
+	rpc nfsfuse_lstat(String) returns (Stat) {}
 	//rpc nfsfuse_lstat(String) returns (Stat) {}
 	rpc nfsfuse_readdir(String) returns (Dirent) {}
 //	rpc rpc_opendir(String) returns (SerializeByte) {}
