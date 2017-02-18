@@ -48,25 +48,25 @@ class NfsServiceImpl final : public NFS::Service {
 	Status nfsfuse_lstat(ServerContext* context, const String* s, 
 					 Stat* reply) override {
 		struct stat st;
+		cout<<"###"<<s->str().c_str()<<"###"<<endl;
 		int res = lstat(s->str().c_str(), &st);
+		cout<<"res lstat "<<res<<endl;
 	    if(res == -1)
 			return Status::CANCELLED; 
 		//reply->set_buffer(reinterpret_cast<const char*>(&st), sizeof(struct stat));	
-		reply->set_ino(st.st_ino);
+		//reply->set_ino(st.st_ino);
 		reply->set_mode(st.st_mode);
 		reply->set_nlink(st.st_nlink);
-		reply->set_uid(st.st_uid);
-		reply->set_gid(st.st_gid);
+		//reply->set_uid(st.st_uid);
+		//reply->set_gid(st.st_gid);
 		//`reply->set_rdev(st.st_rdev);
 		reply->set_size(st.st_size);
-		reply->set_blksize(st.st_blksize);
-		reply->set_blocks(st.st_blocks);
-		reply->set_atime(st.st_atime);
-		reply->set_mtime(st.st_mtime);
-		reply->set_ctime(st.st_ctime);
+		//reply->set_blksize(st.st_blksize);
+		//reply->set_blocks(st.st_blocks);
+		//reply->set_atime(st.st_atime);
+		//reply->set_mtime(st.st_mtime);
+		//reply->set_ctime(st.st_ctime);
 		
-		cout<<"ino"<<reply->ino()<<endl;
-
 		return Status::OK;
 	}
 	
@@ -80,8 +80,12 @@ class NfsServiceImpl final : public NFS::Service {
 			return Status::CANCELLED;
 			
 		de = readdir(dp);
-		reply->set_d_ino(de->d_ino);
-		reply->set_d_name(de->d_name);
+		reply->set_dino(de->d_ino);
+		reply->set_dname(de->d_name);
+		reply->set_dtype(de->d_type);
+		
+		cout<<"d_ino "<<reply->dino();
+		cout<<"d_name "<<reply->dname();
 
 		closedir(dp);
 		return Status::OK;

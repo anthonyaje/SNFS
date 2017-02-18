@@ -33,7 +33,7 @@ NfsClient nfsclient(grpc::CreateChannel(
 static void *client_init(struct fuse_conn_info *conn, 
 				struct fuse_config *cfg){
 	(void) conn;
-    cfg->kernel_cache = 1;
+    //cfg->kernel_cache = 1;
     return NULL;
 }
 
@@ -42,7 +42,8 @@ static int client_getattr(const char *path, struct stat *stbuf,
 {
     (void) fi;
     int res = 0;
-		
+
+    memset(stbuf, 0, sizeof(struct stat));		
 	res = nfsclient.rpc_lstat(path, stbuf);
 	//res = lstat(path, stbuf);
     if (res == -1)
@@ -110,20 +111,23 @@ int main(int argc, char* argv[]){
 	client_oper.read = client_read;
 	umask(0);
 
-    struct fuse_args args = FUSE_ARGS_INIT(argc, argv);
+    //struct fuse_args args = FUSE_ARGS_INIT(argc, argv);
+   	/* 
+	argv[argc-2] = argv[argc-1];
+    argv[argc-1] = NULL;
+    argc--;
+	*/
+	
 
 	
 	int input = 5;	
-
-
 	sdata reply;
 	int ret = nfsclient.function1(input, &reply);
-
 	std::cout<<"a "<<reply.a<<std::endl;
 	std::cout<<"b "<<reply.b<<std::endl;
 	//std::free(reply);
 
-	return fuse_main(args.argc, args.argv, &client_oper, NULL);
+	return fuse_main(argc, argv, &client_oper, NULL);
 }
 
 

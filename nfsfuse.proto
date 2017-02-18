@@ -11,8 +11,9 @@ message String {
 }
 
 message Dirent {
-	uint32 d_ino  = 1; 
-	string d_name = 2;
+	uint32 dino  =1; 
+	string dname = 2;
+	uint32 dtype = 3;
 }
 
 

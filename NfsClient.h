@@ -54,26 +54,28 @@ class NfsClient {
 	ClientContext context;
 	String p;
 	p.set_str(path);
+
 	Status status = stub_->nfsfuse_lstat(&context, p, &result);
+	memset(output, 0, sizeof(struct stat));
+  //*output = *reinterpret_cast<const struct stat*> (result.buffer().c_str());	
+//	output->st_ino = result.ino();
+	output->st_mode = result.mode();
+	output->st_nlink = result.nlink();
+//	output->st_uid = result.uid();
+//	output->st_gid = result.gid();
+//	output->st_rdev = result.rdev();
+	output->st_size = result.size();
+//	output->st_blksize = result.blksize();
+//	output->st_blocks = result.blocks();
+//	output->st_atime = result.atime();
+//	output->st_mtime = result.mtime();
+//	output->st_ctime = result.ctime();
 	if (status.ok()) {
-      //*output = *reinterpret_cast<const struct stat*> (result.buffer().c_str());	
-		output->st_ino = result.ino();
-		output->st_mode = result.mode();
-		output->st_nlink = result.nlink();
-		output->st_uid = result.uid();
-		output->st_gid = result.gid();
-//		output->st_rdev = result.rdev();
-		output->st_size = result.size();
-		output->st_blksize = result.blksize();
-		output->st_blocks = result.blocks();
-		output->st_atime = result.atime();
-		output->st_mtime = result.mtime();
-		output->st_ctime = result.ctime();
 	  return 0;
     } else {
       std::cout << "error " << status.error_code() << ": " << status.error_message()
                 << std::endl;
-      return -1;
+      return -2;
     }
   }
   
@@ -86,18 +88,23 @@ class NfsClient {
 	ClientContext ctx;
     
 	status = stub_->nfsfuse_readdir(&ctx, path, &result);
+	cout<<"1 status: "<<endl;
 	while (status.ok()) {
         struct stat st;
-		de.d_ino = result.d_ino();
-		strcpy(de.d_name, result.d_name().c_str());
-
         memset(&st, 0, sizeof(st));
+
+		de.d_ino = result.dino();
+		strcpy(de.d_name, result.dname().c_str());
+		de.d_type = result.dtype();
+
         st.st_ino = de.d_ino;
         st.st_mode = de.d_type << 12;
+
         if (filler(buf, de.d_name, &st, 0, fuse_fill_dir_flags(0)))
             break;
 	
 		status = stub_->nfsfuse_readdir(&ctx, path, &result);
+		cout<<"2 status: "<<endl;
     }
 	return 0;
   }
