@@ -85,8 +85,7 @@ class NfsClient {
 	Status status;
 	ClientContext ctx;
     
-	status = stub_->nfsfuse_readdir(&ctx, path, &result);
-	while (status.ok()) {
+	while(stub_->nfsfuse_readdir(&ctx, path, &result).ok()){
             struct stat st;
             memset(&st, 0, sizeof(st));
 
@@ -97,12 +96,11 @@ class NfsClient {
             st.st_ino = de.d_ino;
             st.st_mode = de.d_type << 12;
 
-            if (filler(buf, result.dname().c_str(), &st, 0, static_cast<fuse_fill_dir_flags>(0)))
+            if (filler(buf, de.d_name, &st, 0, static_cast<fuse_fill_dir_flags>(0)))
                break;
-	    Dirent result;	
-	    status = stub_->nfsfuse_readdir(&ctx, path, &result);
         }
-	return 0;
+	
+	return result.err();
   }
 	
 /*
