@@ -1,7 +1,7 @@
 CXX = g++
 CPPFLAGS += -I/usr/local/include -g -pthread `pkg-config fuse3 --cflags --libs`
 CXXFLAGS += -std=c++11
-LDFLAGS += -L/usr/local/lib `pkg-config grpc++ grpc fuse3 --cflags --libs`       \
+LDFLAGS += -L/usr/local/lib -g `pkg-config grpc++ grpc fuse3 --cflags --libs`       \
            -Wl,--no-as-needed -lgrpc++_reflection -Wl,--as-needed \
            -lprotobuf -lpthread -ldl
 PROTOC = protoc

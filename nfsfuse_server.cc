@@ -35,22 +35,6 @@ void translatePath(const char* client_path, char* server_path){
 }
 
 class NfsServiceImpl final : public NFS::Service {
-	Status function1(ServerContext* context, const SerializeByte* request,
-					 SerializeByte* reply) override {
-		const sdata* r_data = reinterpret_cast<const sdata*>(request->buffer().c_str());
-	    std::cout<<r_data->a<<std::endl;
-	    std::cout<<r_data->b<<std::endl;
-		
-    	sdata s_sdata;
-		s_sdata.a = 100;
-		strcpy(s_sdata.b,"hello");
-		
-		cout<<sizeof(sdata)<<endl;
-		reply->set_buffer(reinterpret_cast<const char*>(&s_sdata), sizeof(sdata));
-
-	  	return Status::OK;
-	}
-
 	Status nfsfuse_lstat(ServerContext* context, const String* s, 
 					 Stat* reply) override {
 		cout<<"[DEBUG] : lstat: "<<s->str().c_str()<<endl;
@@ -91,16 +75,21 @@ class NfsServiceImpl final : public NFS::Service {
 
 		DIR *dp;
 		struct dirent *de;
-
-		dp = opendir(s->str().c_str());
+		char server_path[512]={0};
+		translatePath(s->str().c_str(), server_path);
+		dp = opendir(server_path);
 		if (dp == NULL){
 			cout<<"[DEBUG] : readdir: "<<"dp == NULL"<<endl;
+			perror(strerror(errno));
+			reply->set_err(errno);
 			return Status::CANCELLED;
 		}
 			
 		de = readdir(dp);
-		if(de == 0 || de == NULL){
+		if(de == NULL){
 		    cout<<"[DEBUG] : readdir: "<<"de == NULL"<<endl;
+		    perror(strerror(errno));
+		    reply->set_err(errno);
 		    return Status::CANCELLED;
 		}
 		cout<<"[DEBUG] : readdir: "<<"de->d_ino "<<de->d_ino<<endl;
@@ -110,33 +99,12 @@ class NfsServiceImpl final : public NFS::Service {
 		reply->set_dname(de->d_name);
 		reply->set_dtype(de->d_type);
 		
-		cout<<"[DEBUG] : readdir: "<<"d_ino "<<reply->dino();
-		cout<<"[DEBUG] : readdir: "<<"d_name "<<reply->dname();
-		cout<<"[DEBUG] : readdir: "<<"d_type "<<reply->dtype();
-
 		closedir(dp);
-		return Status::OK;
-		
-	}
 
-/*
-	Status rpc_opendir(ServerContext* context, const String* s, SerializeByte* reply){
-		DIR *dp;
-		dp = opendir(s->str().c_str());
-		if(dp == NULL)
-			return Status::CANCELLED;
-		reply->set_buffer(reinterpret_cast<const char*>(dp), sizeof(*dp));
+		reply->set_err(0);
 		return Status::OK;
-	}
-	
-	Status rpc_readdir(ServerContext* context, const SerializeByte* dir, Dirent* reply){
-		DIR *dp;
-		dirent* de;
-		dp = reinterpret_cast<const DIR*>(dir.buffer().c_str());
-		readdir(dp);	
 		
 	}
-*/
 
 };
 

@@ -27,28 +27,6 @@ class NfsClient {
   NfsClient(std::shared_ptr<Channel> channel)
       : stub_(NFS::NewStub(channel)) {}
 
-  int function1(const int n, struct sdata* out) {
-    sdata s_data;
-	s_data.a = n;
-	strcpy(s_data.b,"hello");
-	SerializeByte sb;
-	char* ch = reinterpret_cast<char*>(&s_data);
-	sb.set_buffer(ch, sizeof(sdata));
-	
-	SerializeByte rbyte;
-
-    ClientContext context;
-    Status status = stub_->function1(&context, sb, &rbyte);
-    if (status.ok()) {
-	  *out = *reinterpret_cast<const sdata*> (rbyte.buffer().c_str());
-	  return 0;
-    } else {
-      std::cout << "error " << status.error_code() << ": " << status.error_message()
-                << std::endl;
-      return -1;
-    }
-  }
-  
   int rpc_lstat(string path, struct stat* output){
 	Stat result;
 	ClientContext context;
@@ -103,45 +81,6 @@ class NfsClient {
 	return result.err();
   }
 	
-/*
-  DIR* rpc_opendir(string path){
-	SerializeByte result;
-	ClientContext context;
-	String p;
-	p.set_str(path);
-	Status status = stub_->rpc_opendir(&context, p, &result);
-	if(status.ok()){
-		DIR* p = new DIR();
-		*p = *reinterpret_cast<const DIR*>(result.buffer().c_str());
-		return p;
-	}
-	else{
-	   std::cout << "error " << status.error_code() << ": " << status.error_message()
-                << std::endl;
-      return nullptr;
-	}
-  }
-
-  dirent* rpc_readdir(DIR* dp){
-      Dirent res;
-	  SerializeByte req;
-	  ClientContext ctx;
-
-	  req->set_buffer(reinterpret_cast<const char*>(dp), sizeof(*dp));
-	  Status status = stub_->readdir(&context, req, &res);
-      if (status.ok()) {
-		  dirent* de = new struct dirent;
-		  de->d_ino = res.d_ino();
-		  de->d_name = res.d_name;
-          return de;
-      } else {
-          std::cout << "error " << status.error_code() << ": " << status.error_message()
-                << std::endl;
-          return nullptr;
-    }
-	
-  }
-*/
  private:
   std::unique_ptr<NFS::Stub> stub_;
 };
