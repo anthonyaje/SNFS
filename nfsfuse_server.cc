@@ -48,8 +48,8 @@ class NfsServiceImpl final : public NFS::Service {
 		reply->set_mode(st.st_mode);
 		reply->set_nlink(st.st_nlink);
 		reply->set_uid(st.st_uid);
-		/reply->set_gid(st.st_gid);
-		//`reply->set_rdev(st.st_rdev);
+		reply->set_gid(st.st_gid);
+		//reply->set_rdev(st.st_rdev);
 		reply->set_size(st.st_size);
 		reply->set_blksize(st.st_blksize);
 		reply->set_blocks(st.st_blocks);
