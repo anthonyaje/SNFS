@@ -80,6 +80,9 @@ class NfsServiceImpl final : public NFS::Service {
 			return Status::CANCELLED;
 			
 		de = readdir(dp);
+		if(de == 0 || de != NULL){
+		    return Status::CANCELLED;
+		}
 		reply->set_dino(de->d_ino);
 		reply->set_dname(de->d_name);
 		reply->set_dtype(de->d_type);

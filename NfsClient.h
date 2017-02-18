@@ -88,24 +88,22 @@ class NfsClient {
 	ClientContext ctx;
     
 	status = stub_->nfsfuse_readdir(&ctx, path, &result);
-	cout<<"1 status: "<<endl;
 	while (status.ok()) {
-        struct stat st;
-        memset(&st, 0, sizeof(st));
+            struct stat st;
+            memset(&st, 0, sizeof(st));
 
-		de.d_ino = result.dino();
-		strcpy(de.d_name, result.dname().c_str());
-		de.d_type = result.dtype();
+	    de.d_ino = result.dino();
+	    strcpy(de.d_name, result.dname().c_str());
+	    de.d_type = result.dtype();
 
-        st.st_ino = de.d_ino;
-        st.st_mode = de.d_type << 12;
+            st.st_ino = de.d_ino;
+            st.st_mode = de.d_type << 12;
 
-        if (filler(buf, de.d_name, &st, 0, fuse_fill_dir_flags(0)))
-            break;
+            if (filler(buf, de.d_name, &st, 0, fuse_fill_dir_flags(0)))
+               break;
 	
-		status = stub_->nfsfuse_readdir(&ctx, path, &result);
-		cout<<"2 status: "<<endl;
-    }
+	    status = stub_->nfsfuse_readdir(&ctx, path, &result);
+        }
 	return 0;
   }
 	
