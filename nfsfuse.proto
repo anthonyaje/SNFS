@@ -30,14 +30,17 @@ message Stat {
     sint64  blocks = 9;  // number of 512B blocks allocated 
     uint32    atime = 10;   // time of last access 
     uint32    mtime = 11;   // time of last modification
-    uint32    ctime = 12;   // time of last status change 
+    uint32    ctime = 12;   // time of last status change
+    
+    uint32    err = 14; 
 }
 
 
 
 service NFS {
 	rpc function1 (SerializeByte) returns (SerializeByte) {}
-	rpc nfsfuse_lstat(String) returns (Stat) {}
+	rpc nfsfuse_lstat(String) returns (SerializeByte) {}
+	//rpc nfsfuse_lstat(String) returns (Stat) {}
 	rpc nfsfuse_readdir(String) returns (Dirent) {}
 //	rpc rpc_opendir(String) returns (SerializeByte) {}
 //    rpc rpc_readdir(SerializeByte) returns(Dirent){}	
