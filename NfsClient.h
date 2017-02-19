@@ -91,15 +91,9 @@ class NfsClient {
         fi_req.set_flags(fi->flags);
         
         status = stub_->nfsfuse_open(&ctx, fi_req, &fi_res);
-        if(status.ok()){
-            if(fi_res.err() == -1)
-                return -errno;
-            else{
-                fi->fh = fi_res.fh();
-                return 0;               
-            }
-        } else
-                return -errno;
+        if(status.ok())
+            fi->fh = fi_res.fh();
+        return -fi_res.err();
     }
 	
     int rpc_read(const char *path, char *buf, size_t size, off_t offset,
@@ -146,6 +140,22 @@ class NfsClient {
         } else{
             return -errno; 
         }
+    }
+    
+    int rpc_create(const char *path, mode_t mode, struct fuse_file_info *fi)
+    {
+        ClientContext ctx; 
+        CreateResult cres;
+        CreateRequest creq;
+        creq.set_path(path);
+        creq.set_mode(mode);
+        creq.set_flags(fi->flags);
+        
+        Status status = stub_->nfsfuse_create(&ctx, creq, &cres);
+        if(status.ok())
+            fi->fh = cres.fh();   
+ 
+        return -cres.err();
     }
 
 

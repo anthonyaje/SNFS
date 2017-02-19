@@ -113,11 +113,12 @@ class NfsServiceImpl final : public NFS::Service {
 
 		cout<<"[DEBUG] : nfsfuse_open: fh"<<fh<<endl;
         if(fh == -1){
-            fi_reply->set_err(-1);            
+            fi_reply->set_err(errno);            
             return Status::CANCELLED;
         }
         else{
             fi_reply->set_fh(fh);            
+            fi_reply->set_err(0);
             close(fh);
             return Status::OK;
         }
@@ -186,6 +187,31 @@ class NfsServiceImpl final : public NFS::Service {
 
         return Status::OK;
     }
+
+    Status nfsfuse_create(ServerContext* context, const CreateRequest* req,
+            CreateResult* reply) override {
+
+        char server_path[512] = {0};
+        translatePath(req->path().c_str(), server_path);
+
+        cout<<"[DEBUG] : nfsfuse_create: path "<<server_path<<endl;
+        cout<<"[DEBUG] : nfsfuse_create: flag "<<req->flags()<<endl;
+
+        int fh = open(server_path, req->flags(), req->mode());
+
+        cout<<"[DEBUG] : nfsfuse_create: fh"<<fh<<endl;
+        if(fh == -1){
+            reply->set_err(errno);
+            return Status::CANCELLED;
+        }
+        else{
+            reply->set_fh(fh);
+            reply->set_err(0);
+            close(fh);
+            return Status::OK;
+        }
+    }
+
 
 };
 
