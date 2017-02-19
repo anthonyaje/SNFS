@@ -187,8 +187,8 @@ class NfsServiceImpl final : public NFS::Service {
 
         return Status::OK;
     }
-    Status nfsfuse_mkdir(ServerContext* context, const Mkdir* input,
-                                         MkdirOutput* reply) override {
+    Status nfsfuse_mkdir(ServerContext* context, const MkdirRequest* input,
+                                         OutputInfo* reply) override {
             cout<<"[DEBUG] : mkdir: " << endl;
 		
             char server_path[512]={0};
@@ -211,7 +211,7 @@ class NfsServiceImpl final : public NFS::Service {
     }
 
     Status nfsfuse_rmdir(ServerContext* context, const String* input,
-                                         MkdirOutput* reply) override {
+                                         OutputInfo* reply) override {
             cout<<"[DEBUG] : rmdir: " << endl;
 
             char server_path[512]={0};
@@ -258,7 +258,7 @@ class NfsServiceImpl final : public NFS::Service {
     }
 
     Status nfsfuse_unlink(ServerContext* context, const String* input,
-                                         MkdirOutput* reply) override {
+                                         OutputInfo* reply) override {
             cout<<"[DEBUG] : unlink " << endl;
 
             char server_path[512]={0};
@@ -279,6 +279,43 @@ class NfsServiceImpl final : public NFS::Service {
 
             return Status::OK;
     }
+
+    Status nfsfuse_rename(ServerContext* context, const RenameRequest* input,
+                                         OutputInfo* reply) override {
+            cout<<"[DEBUG] : rename " << endl;
+	    
+	    if (input->flag()) {
+                perror(strerror(errno));
+                reply->set_err(-1);
+                reply->set_str("rename fail");	        
+	        return Status::CANCELLED;
+	    }
+
+            char from_path[512]={0};
+	    char to_path[512] = {0};
+            translatePath(input->fp().c_str(), from_path);
+ 	    translatePath(input->tp().c_str(), to_path);
+            cout << "from path: " << from_path << endl;
+            cout << "to path: " << to_path << endl;
+
+	    int res = rename(from_path, to_path);
+
+
+            if (res == -1) {
+                perror(strerror(errno));
+                reply->set_err(-1);
+                reply->set_str("rename fail");
+                return Status::CANCELLED;
+            } else {
+                reply->set_err(0);
+                reply->set_str("rename succeed");
+            }
+
+            return Status::OK;
+    }
+
+
+
 };
 
 void RunServer() {

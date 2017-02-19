@@ -103,6 +103,12 @@ static int client_unlink(const char *path)
     return options.nfsclient->rpc_unlink(path);    
 }
 
+static int client_rename(const char *from, const char *to, unsigned int flags)
+{
+    return options.nfsclient->rpc_rename(from, to, flags);
+}
+
+
 static struct client_operations : fuse_operations {
     client_operations(){
         init = client_init;
@@ -115,10 +121,9 @@ static struct client_operations : fuse_operations {
 	mkdir	= client_mkdir;
 	rmdir = client_rmdir;
 	unlink  = client_unlink;
+	rename = client_rename;
 	/*
         flush   = client_flush;
-        rename  = client_rename;
-        rmdir   = client_rmdir;
         release = client_release;
         utimens   = client_utimens;
 	*/

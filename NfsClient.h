@@ -159,11 +159,11 @@ class NfsClient {
     }
 
   int rpc_mkdir(string path, mode_t mode){
-      Mkdir input;
+      MkdirRequest input;
       ClientContext context;
       input.set_s(path);
       input.set_mode(mode);
-      MkdirOutput result;
+      OutputInfo result;
 
       Status status = stub_->nfsfuse_mkdir(&context, input, &result);
     
@@ -178,7 +178,7 @@ class NfsClient {
       String input;
       ClientContext context;
       input.set_str(path);
-      MkdirOutput result;
+      OutputInfo result;
 
       Status status = stub_->nfsfuse_rmdir(&context, input, &result);
 
@@ -195,7 +195,7 @@ class NfsClient {
       String input;
       ClientContext context;
       input.set_str(path);
-      MkdirOutput result;
+      OutputInfo result;
 
       Status status = stub_->nfsfuse_unlink(&context, input, &result);
 
@@ -204,6 +204,25 @@ class NfsClient {
           return -1;
       }
       return 0;
+  }
+
+  int rpc_rename(const char *from, const char *to, unsigned int flags) {
+      RenameRequest input;
+      ClientContext context;
+      input.set_fp(from);
+      input.set_tp(to);
+      input.set_flag(flags);
+      OutputInfo result;
+
+      Status status = stub_->nfsfuse_rename(&context, input, &result);
+
+      if (result.err() == -1) {
+          std::cout << "error " << result.str() << std::endl;
+          return -1;
+      }
+      return 0;
+
+
   }
 
  private:
