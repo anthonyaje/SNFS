@@ -118,7 +118,7 @@ class NfsServiceImpl final : public NFS::Service {
         }
         else{
             fi_reply->set_fh(fh);            
-            //close(fh);
+            close(fh);
             return Status::OK;
         }
     }
@@ -141,6 +141,7 @@ class NfsServiceImpl final : public NFS::Service {
 
         int res = pread(fd, buf, rr->size(), rr->offset());
         if (res == -1){
+            reply->set_bytesread(-1);
 		    perror(strerror(errno));
             return Status::CANCELLED;
         }
@@ -153,6 +154,37 @@ class NfsServiceImpl final : public NFS::Service {
         free(buf);
         return Status::OK;
 
+    }
+
+
+    Status nfsfuse_write(ServerContext* context, const WriteRequest* wr, 
+            WriteResult* reply) override {
+        char path[512] = {0};
+        translatePath(wr->path().c_str(), path);
+        int fd = open(path, O_WRONLY);
+		cout<<"[DEBUG] : nfsfuse_write: path "<<path<<endl;
+		cout<<"[DEBUG] : nfsfuse_write: fd "<<fd<<endl;
+        if(fd == -1){
+            reply->set_err(-errno);
+            perror(strerror(errno));
+            Status::CANCELLED;
+        } 
+
+        int res = pwrite(fd, wr->buffer().c_str(), wr->size(), wr->offset());
+		cout<<"[DEBUG] : nfsfuse_write: res"<<res<<endl;
+        if(res == -1){
+            reply->set_err(-errno);
+            perror(strerror(errno));
+            Status::CANCELLED;
+        }
+        
+        reply->set_nbytes(res);
+        reply->set_err(0);
+    
+        if(fd>0)
+            close(fd);
+
+        return Status::OK;
     }
 
 };

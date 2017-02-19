@@ -85,6 +85,12 @@ static int client_read(const char *path, char *buf, size_t size, off_t offset,
     return options.nfsclient->rpc_read(path, buf, size, offset, fi);
 }
 
+static int client_write(const char *path, const char *buf, size_t size,
+             off_t offset, struct fuse_file_info *fi)
+{
+    return options.nfsclient->rpc_write(path, buf, size, offset, fi);
+}
+
 static struct client_operations : fuse_operations {
     client_operations(){
         init = client_init;
@@ -92,12 +98,11 @@ static struct client_operations : fuse_operations {
         readdir = client_readdir;
         open = client_open;
         read = client_read;
-	
+        write = client_write;
 	
 	/*
 	mkdir	= client_mkdir;
         unlink  = client_unlink;
-        write   = client_write;
         flush   = client_flush;
         rename  = client_rename;
         rmdir   = client_rmdir;

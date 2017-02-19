@@ -104,7 +104,7 @@ class NfsClient {
 	
     int rpc_read(const char *path, char *buf, size_t size, off_t offset,
             struct fuse_file_info *fi){
-
+        ClientContext clientContext;
         ReadRequest rr;
         rr.set_path(path);
         rr.set_size(size);
@@ -125,10 +125,33 @@ class NfsClient {
      
     }
 
+    int rpc_write(const char *path, const char *buf, size_t size,
+             off_t offset, struct fuse_file_info *fi){
+        ClientContext ctx;
+        WriteRequest wreq;
+        wreq.set_path(path);
+        wreq.set_size(size);
+        wreq.set_offset(offset);
+        wreq.set_buffer(buf);
+        
+        WriteResult wres;
+
+        Status status = stub_->nfsfuse_write(&ctx, wreq, &wres);
+        if(status.ok()){
+            if(wres.err() < 0)
+                return wres.err(); 
+
+            return wres.nbytes();
+
+        } else{
+            return -errno; 
+        }
+    }
+
+
 	
  private:
     std::unique_ptr<NFS::Stub> stub_;
-    ClientContext clientContext;
 };
 
 

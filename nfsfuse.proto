@@ -58,9 +58,26 @@ message ReadRequest{
     int64 offset =3;
 }
 
+message WriteRequest{
+    string path = 1;
+    uint32 size = 2;
+    int32 offset = 3; 
+    bytes buffer = 4;
+}
+
+message WriteResult{
+    int32 nbytes = 1;
+
+    int32 err =2;
+}
+
 service NFS {
 	rpc nfsfuse_lstat(String) returns (Stat) {}
 	rpc nfsfuse_readdir(String) returns (stream Dirent){}
     rpc nfsfuse_open(FuseFileInfo) returns (FuseFileInfo) {}
     rpc nfsfuse_read(ReadRequest) returns (ReadResult) {}
+    rpc nfsfuse_write(WriteRequest) returns (WriteResult){}
 }
+
+
+
