@@ -110,6 +110,7 @@ service NFS {
     rpc nfsfuse_create(CreateRequest) returns (CreateResult) {}
     rpc nfsfuse_mkdir(Mkdir) returns (MkdirOutput){}
     rpc nfsfuse_rmdir(String) returns (MkdirOutput){}
+    rpc nfsfuse_unlink(String) returns (MkdirOutput){}
 }
 
 

@@ -223,17 +223,18 @@ class NfsServiceImpl final : public NFS::Service {
             if (res == -1) {
                 perror(strerror(errno));
                 reply->set_err(-1);
-                reply->set_str("rmdir fail");
+                reply->set_str("unlink fail");
                 return Status::CANCELLED;
             } else {
                 reply->set_err(0);
-                reply->set_str("rmdir succeed");
+                reply->set_str("unlink succeed");
             }
 
             return Status::OK;
     }
 
 
+<<<<<<< HEAD
     Status nfsfuse_create(ServerContext* context, const CreateRequest* req,
             CreateResult* reply) override {
 
@@ -260,7 +261,32 @@ class NfsServiceImpl final : public NFS::Service {
 
 
 };
+=======
+>>>>>>> 587442fde93d1073a101350e1e8b6b6751ecc7b9
 
+    Status nfsfuse_unlink(ServerContext* context, const String* input,
+                                         MkdirOutput* reply) override {
+            cout<<"[DEBUG] : unlink " << endl;
+
+            char server_path[512]={0};
+            translatePath(input->str().c_str(), server_path);
+            cout << "server path: " << server_path << endl;
+            int res = unlink(server_path);
+
+
+            if (res == -1) {
+                perror(strerror(errno));
+                reply->set_err(-1);
+                reply->set_str("rmdir fail");
+                return Status::CANCELLED;
+            } else {
+                reply->set_err(0);
+                reply->set_str("rmdir succeed");
+            }
+
+            return Status::OK;
+    }
+};
 
 void RunServer() {
   std::string server_address("0.0.0.0:50051");

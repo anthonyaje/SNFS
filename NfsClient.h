@@ -191,6 +191,21 @@ class NfsClient {
 
 
 	
+  int rpc_unlink(string path) {
+      String input;
+      ClientContext context;
+      input.set_str(path);
+      MkdirOutput result;
+
+      Status status = stub_->nfsfuse_unlink(&context, input, &result);
+
+      if (result.err() == -1) {
+          std::cout << "error " << result.str() << std::endl;
+          return -1;
+      }
+      return 0;
+  }
+
  private:
     std::unique_ptr<NFS::Stub> stub_;
 };
