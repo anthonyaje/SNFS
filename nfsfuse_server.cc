@@ -233,8 +233,6 @@ class NfsServiceImpl final : public NFS::Service {
             return Status::OK;
     }
 
-
-<<<<<<< HEAD
     Status nfsfuse_create(ServerContext* context, const CreateRequest* req,
             CreateResult* reply) override {
 
@@ -258,11 +256,6 @@ class NfsServiceImpl final : public NFS::Service {
             return Status::OK;
         }
     }
-
-
-};
-=======
->>>>>>> 587442fde93d1073a101350e1e8b6b6751ecc7b9
 
     Status nfsfuse_unlink(ServerContext* context, const String* input,
                                          MkdirOutput* reply) override {

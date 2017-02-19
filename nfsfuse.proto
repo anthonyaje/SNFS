@@ -71,7 +71,6 @@ message WriteResult{
     int32 err =2;
 }
 
-<<<<<<< HEAD
 message CreateRequest{
     string path =1;
     int32 mode  =2;
@@ -89,7 +88,6 @@ message CreateResult{
     int32 err = 7;
 }
 
-=======
 message Mkdir {
     string s = 1;
     uint32 mode = 2;
