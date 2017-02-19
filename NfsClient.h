@@ -148,6 +148,21 @@ class NfsClient {
         }
     }
 
+  int rpc_mkdir(string path, mode_t mode){
+      Mkdir input;
+      ClientContext context;
+      input.set_s(path);
+      input.set_mode(mode);
+      MkdirOutput result;
+
+      Status status = stub_->nfsfuse_mkdir(&context, input, &result);
+    
+      if (result.err() == -1) {
+          std::cout << "error " << result.str() << std::endl;
+	  return -1;
+      }
+      return 0;
+  }
 
 	
  private:

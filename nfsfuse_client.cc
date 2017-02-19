@@ -83,6 +83,19 @@ static int client_write(const char *path, const char *buf, size_t size,
     return options.nfsclient->rpc_write(path, buf, size, offset, fi);
 }
 
+static int client_mkdir(const char *path, mode_t mode) {
+    
+    int res = 0;
+    //res = mkdir(path, mode);
+    res = options.nfsclient->rpc_mkdir(path, mode);
+    if (res == -1)
+        return -errno;
+
+    return 0;
+}
+
+
+
 static int client_create(const char *path, mode_t mode, struct fuse_file_info *fi)
 {
 /*    int fd;
@@ -106,10 +119,9 @@ static struct client_operations : fuse_operations {
         read = client_read;
         write = client_write;
         create  = client_create;
-	
-	/*
 	mkdir	= client_mkdir;
-        unlink  = client_unlink;
+        /*
+	unlink  = client_unlink;
         flush   = client_flush;
         rename  = client_rename;
         rmdir   = client_rmdir;

@@ -186,7 +186,28 @@ class NfsServiceImpl final : public NFS::Service {
 
         return Status::OK;
     }
+    Status nfsfuse_mkdir(ServerContext* context, const Mkdir* input,
+                                         MkdirOutput* reply) override {
+            cout<<"[DEBUG] : mkdir: " << endl;
+		
+            char server_path[512]={0};
+            translatePath(input->s().c_str(), server_path);
+            cout << "server path: " << server_path << endl;
+            int res = mkdir(server_path, input->mode());
+		
 
+            if (res == -1) {
+                perror(strerror(errno)); 
+                reply->set_err(-1);
+                reply->set_str("Mkdir fail");
+                return Status::CANCELLED; 
+            } else {
+	        reply->set_err(0);
+                reply->set_str("Mkdir succeed");
+            }
+
+            return Status::OK;
+    }
 };
 
 

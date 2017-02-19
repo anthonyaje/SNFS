@@ -71,12 +71,24 @@ message WriteResult{
     int32 err =2;
 }
 
+message Mkdir {
+    string s = 1;
+    uint32 mode = 2;
+}
+
+message MkdirOutput {
+    string str = 1;
+    uint32 err = 2;
+}
+
+
 service NFS {
-	rpc nfsfuse_getattr(String) returns (Stat) {}
-	rpc nfsfuse_readdir(String) returns (stream Dirent){}
+    rpc nfsfuse_getattr(String) returns (Stat) {}
+    rpc nfsfuse_readdir(String) returns (stream Dirent){}
     rpc nfsfuse_open(FuseFileInfo) returns (FuseFileInfo) {}
     rpc nfsfuse_read(ReadRequest) returns (ReadResult) {}
     rpc nfsfuse_write(WriteRequest) returns (WriteResult){}
+    rpc nfsfuse_mkdir(Mkdir) returns (MkdirOutput){}
 }
 
 
