@@ -1,0 +1,4 @@
+fusermount -u t1;
+fusermount -u t2;
+fusermount -u t3;
+
