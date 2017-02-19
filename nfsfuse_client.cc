@@ -48,23 +48,15 @@ static void show_help(const char *progname)
 static void *client_init(struct fuse_conn_info *conn, 
 				struct fuse_config *cfg){
     (void) conn;
-    cfg->kernel_cache = 1;
+    //cfg->kernel_cache = 1;
     return NULL;
 }
 
 static int client_getattr(const char *path, struct stat *stbuf,
              struct fuse_file_info *fi)
 {
-    (void) fi;
-    int res = 0;
-
     memset(stbuf, 0, sizeof(struct stat));		
-	res = options.nfsclient->rpc_lstat(path, stbuf);
-	//res = lstat(path, stbuf);
-    if (res == -1)
-        return -errno;
-	
-    return 0;
+	return options.nfsclient->rpc_getattr(path, stbuf);
 }
 
 static int client_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
@@ -91,6 +83,20 @@ static int client_write(const char *path, const char *buf, size_t size,
     return options.nfsclient->rpc_write(path, buf, size, offset, fi);
 }
 
+static int client_create(const char *path, mode_t mode, struct fuse_file_info *fi)
+{
+/*    int fd;
+
+    fd = open(path, fi->flags, mode);
+    if (fd == -1)
+        return -errno;
+
+    fi->fh = fd;
+*/    return 0;
+}
+
+
+
 static struct client_operations : fuse_operations {
     client_operations(){
         init = client_init;
@@ -99,6 +105,7 @@ static struct client_operations : fuse_operations {
         open = client_open;
         read = client_read;
         write = client_write;
+        create  = client_create;
 	
 	/*
 	mkdir	= client_mkdir;
@@ -107,7 +114,6 @@ static struct client_operations : fuse_operations {
         rename  = client_rename;
         rmdir   = client_rmdir;
         release = client_release;
-        create  = client_create;
         utimens   = client_utimens;
 	*/
     }

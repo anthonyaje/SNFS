@@ -24,13 +24,13 @@ class NfsClient {
   NfsClient(std::shared_ptr<Channel> channel)
       : stub_(NFS::NewStub(channel)) {}
 
-    int rpc_lstat(string path, struct stat* output){
+    int rpc_getattr(string path, struct stat* output){
         Stat result;
         ClientContext context;
         String p;
         p.set_str(path);
 
-        Status status = stub_->nfsfuse_lstat(&context, p, &result);
+        Status status = stub_->nfsfuse_getattr(&context, p, &result);
         memset(output, 0, sizeof(struct stat));
         output->st_ino = result.ino();
         output->st_mode = result.mode();
@@ -47,9 +47,9 @@ class NfsClient {
         
         if (result.err() != 0) {
                 std::cout << "error " << result.err() << std::endl;
-            }
+        }
         
-        return result.err();
+        return -result.err();
     }
   
     int rpc_readdir(string p, void *buf, fuse_fill_dir_t filler){

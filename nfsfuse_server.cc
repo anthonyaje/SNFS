@@ -36,7 +36,7 @@ void translatePath(const char* client_path, char* server_path){
 }
 
 class NfsServiceImpl final : public NFS::Service {
-	Status nfsfuse_lstat(ServerContext* context, const String* s, 
+	Status nfsfuse_getattr(ServerContext* context, const String* s, 
 					 Stat* reply) override {
 		cout<<"[DEBUG] : lstat: "<<s->str().c_str()<<endl;
 
