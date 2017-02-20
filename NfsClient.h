@@ -29,9 +29,14 @@ class NfsClient {
         ClientContext context;
         String p;
         p.set_str(path);
+        memset(output, 0, sizeof(struct stat));
 
         Status status = stub_->nfsfuse_getattr(&context, p, &result);
-        memset(output, 0, sizeof(struct stat));
+        if(result.err() != 0){
+            std::cout << "errno: " << result.err() << std::endl;
+            return -result.err();
+        }
+
         output->st_ino = result.ino();
         output->st_mode = result.mode();
         output->st_nlink = result.nlink();
@@ -45,11 +50,7 @@ class NfsClient {
         output->st_mtime = result.mtime();
         output->st_ctime = result.ctime();
         
-        if (result.err() != 0) {
-                std::cout << "error " << result.err() << std::endl;
-        }
-        
-        return -result.err();
+        return 0;
     }
   
     int rpc_readdir(string p, void *buf, fuse_fill_dir_t filler){
@@ -63,23 +64,23 @@ class NfsClient {
         std::unique_ptr<ClientReader<Dirent> >reader(
             stub_->nfsfuse_readdir(&ctx, path));
         while(reader->Read(&result)){
-                struct stat st;
-                memset(&st, 0, sizeof(st));
+            struct stat st;
+            memset(&st, 0, sizeof(st));
 
             de.d_ino = result.dino();
             strcpy(de.d_name, result.dname().c_str());
             de.d_type = result.dtype();
 
-                st.st_ino = de.d_ino;
-                st.st_mode = de.d_type << 12;
+            st.st_ino = de.d_ino;
+            st.st_mode = de.d_type << 12;
 
-                if (filler(buf, de.d_name, &st, 0, static_cast<fuse_fill_dir_flags>(0)))
-                   break;
+            if (filler(buf, de.d_name, &st, 0, static_cast<fuse_fill_dir_flags>(0)))
+                break;
             }
 
         status = reader->Finish();	
 
-        return result.err();
+        return -result.err(); // it's fine -0 is  0
     }
 
     int rpc_open(const char* path, struct fuse_file_info* fi){
@@ -91,8 +92,9 @@ class NfsClient {
         fi_req.set_flags(fi->flags);
         
         status = stub_->nfsfuse_open(&ctx, fi_req, &fi_res);
-        if(status.ok())
+        if(fi_res.err() == 0)
             fi->fh = fi_res.fh();
+
         return -fi_res.err();
     }
 	
@@ -107,16 +109,12 @@ class NfsClient {
         ReadResult rres;
 
         Status status = stub_->nfsfuse_read(&clientContext, rr, &rres);
-        if(status.ok()){
-            if(rres.bytesread() < 0)
-                return -errno;
-
+        if(rres.err() == 0){
             strcpy(buf, rres.buffer().c_str());
             return rres.bytesread();
         }else{
-            return -errno;
+            return -rres.err();
         }        
-     
     }
 
     int rpc_write(const char *path, const char *buf, size_t size,
@@ -131,14 +129,10 @@ class NfsClient {
         WriteResult wres;
 
         Status status = stub_->nfsfuse_write(&ctx, wreq, &wres);
-        if(status.ok()){
-            if(wres.err() < 0)
-                return wres.err(); 
-
+        if(wres.err() == 0){
             return wres.nbytes();
-
         } else{
-            return -errno; 
+            return -wres.err(); 
         }
     }
     
@@ -152,7 +146,7 @@ class NfsClient {
         creq.set_flags(fi->flags);
         
         Status status = stub_->nfsfuse_create(&ctx, creq, &cres);
-        if(status.ok())
+        if(cres.err() == 0)
             fi->fh = cres.fh();   
  
         return -cres.err();
@@ -167,11 +161,11 @@ class NfsClient {
 
       Status status = stub_->nfsfuse_mkdir(&context, input, &result);
     
-      if (result.err() == -1) {
-          std::cout << "error " << result.str() << std::endl;
-	  return -1;
+      if (result.err() != 0) {
+          std::cout << "error: nfsfuse_mkdir() fails" << std::endl;
       }
-      return 0;
+
+      return -result.err();
   }
 
   int rpc_rmdir(string path) {
@@ -182,11 +176,10 @@ class NfsClient {
 
       Status status = stub_->nfsfuse_rmdir(&context, input, &result);
 
-      if (result.err() == -1) {
-          std::cout << "error " << result.str() << std::endl;
-          return -1;
+      if (result.err() != 0) {
+          std::cout << "error: nfsfuse_rmdir() fails" << std::endl;
       }
-      return 0;
+      return -result.err();
   }
 
 
@@ -198,12 +191,10 @@ class NfsClient {
       OutputInfo result;
 
       Status status = stub_->nfsfuse_unlink(&context, input, &result);
-
-      if (result.err() == -1) {
-          std::cout << "error " << result.str() << std::endl;
-          return -1;
+      if (result.err() != 0) {
+          std::cout << "error: nfsfuse_unlink() fails" << std::endl;
       }
-      return 0;
+      return -result.err();
   }
 
   int rpc_rename(const char *from, const char *to, unsigned int flags) {
@@ -215,14 +206,10 @@ class NfsClient {
       OutputInfo result;
 
       Status status = stub_->nfsfuse_rename(&context, input, &result);
-
-      if (result.err() == -1) {
-          std::cout << "error " << result.str() << std::endl;
-          return -1;
+      if (result.err() != 0) {
+          std::cout << "error: nfsfuse_rename() fails" << std::endl;
       }
-      return 0;
-
-
+      return -result.err();
   }
 
   int rpc_utimens(const char *path, const struct timespec *ts, struct fuse_file_info *fi) {
@@ -238,12 +225,10 @@ class NfsClient {
 
       OutputInfo result;
       Status status = stub_->nfsfuse_utimens(&context, input, &result);
-
-      if (result.err() == -1) {
-          std::cout << "error " << result.str() << std::endl;
-          return -1;
+      if (result.err() != 0) {
+          std::cout << "error: nfsfuse_utimens fails" << std::endl;
       }
-      return 0;
+      return -result.err();
   }
 
 
@@ -256,13 +241,10 @@ class NfsClient {
       OutputInfo result;
 
       Status status = stub_->nfsfuse_mknod(&context, input, &result);
-
-      if (result.err() == -1) {
-          std::cout << "error " << result.str() << std::endl;
-          return -1;
+      if (result.err() != 0) {
+          std::cout << "error: nfsfuse_mknod() fails" << std::endl;
       }
-      return 0;
-
+      return -result.err();
 
   }
 
