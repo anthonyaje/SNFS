@@ -104,6 +104,20 @@ message RenameRequest {
     uint32 flag = 3;
 }
 
+message UtimensRequest {
+    string path = 1;
+    uint32 sec = 2;
+    uint64 nsec = 3;
+    uint32 sec2 = 4;
+    uint64 nsec2 = 5;
+}
+
+message MknodRequest {
+    string path = 1;
+    int32 mode = 2;
+    uint32 rdev = 3;
+}
+
 service NFS {
     rpc nfsfuse_getattr(String) returns (Stat) {}
     rpc nfsfuse_readdir(String) returns (stream Dirent){}
@@ -115,7 +129,10 @@ service NFS {
     rpc nfsfuse_rmdir(String) returns (OutputInfo){}
     rpc nfsfuse_unlink(String) returns (OutputInfo){}
     rpc nfsfuse_rename(RenameRequest) returns (OutputInfo){}
+    rpc nfsfuse_utimens(UtimensRequest) returns (OutputInfo){}
+    rpc nfsfuse_mknod(MknodRequest) returns (OutputInfo){}
 }
+
 
 
 

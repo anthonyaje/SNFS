@@ -314,6 +314,66 @@ class NfsServiceImpl final : public NFS::Service {
             return Status::OK;
     }
 
+    Status nfsfuse_utimens(ServerContext* context, const UtimensRequest* input,
+                                         OutputInfo* reply) override {
+            cout<<"[DEBUG] : utimens " << endl;
+
+            char server_path[512]={0};
+            translatePath(input->path().c_str(), server_path);
+            cout << "server path: " << server_path << endl;
+
+	    struct timespec ts[2];
+	    ts[0].tv_sec = input->sec();
+	    ts[0].tv_nsec = input->nsec();
+	    ts[1].tv_sec = input->sec2();
+	    ts[1].tv_nsec = input->nsec2();
+
+            int res = utimensat(0, server_path, ts, AT_SYMLINK_NOFOLLOW);
+
+
+            if (res == -1) {
+                perror(strerror(errno));
+                reply->set_err(-1);
+                reply->set_str("rmdir fail");
+                return Status::CANCELLED;
+            } else {
+                reply->set_err(0);
+                reply->set_str("rmdir succeed");
+            }
+
+            return Status::OK;
+    }
+
+    Status nfsfuse_mknod(ServerContext* context, const MknodRequest* input,
+                                         OutputInfo* reply) override {
+            cout<<"[DEBUG] : mknod " << endl;
+
+            char server_path[512]={0};
+            translatePath(input->path().c_str(), server_path);
+            cout << "server path: " << server_path << endl;
+
+	    mode_t mode = input->mode();
+	    dev_t rdev = input->rdev();
+
+	    int res;
+
+	    if (S_ISFIFO(mode))
+		res = mkfifo(server_path, mode);
+	    else
+		res = mknod(server_path, mode, rdev);
+	    
+            if (res == -1) {
+	        reply->set_err(-1);
+	  	reply->set_str("mknod fail");
+         	return Status::CANCELLED;
+
+	    }
+
+            reply->set_err(0);
+            reply->set_str("mknod succeed");
+
+            return Status::OK;
+    }
 
 
 };

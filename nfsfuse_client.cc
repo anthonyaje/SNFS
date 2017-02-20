@@ -109,6 +109,17 @@ static int client_rename(const char *from, const char *to, unsigned int flags)
 }
 
 
+static int client_utimens(const char *path, const struct timespec ts[2],
+		       struct fuse_file_info *fi)
+{
+    return options.nfsclient->rpc_utimens(path, ts, fi);
+}
+
+static int client_mknod(const char *path, mode_t mode, dev_t rdev)
+{
+    return options.nfsclient->rpc_mknod(path, mode, rdev);
+}
+
 static struct client_operations : fuse_operations {
     client_operations(){
         init = client_init;
@@ -122,10 +133,11 @@ static struct client_operations : fuse_operations {
 	rmdir = client_rmdir;
 	unlink  = client_unlink;
 	rename = client_rename;
+	utimens = client_utimens;
+	mknod = client_mknod;
 	/*
         flush   = client_flush;
         release = client_release;
-        utimens   = client_utimens;
 	*/
     }
 

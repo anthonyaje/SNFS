@@ -16,7 +16,7 @@
  *
  * Compile with
  *
- *     gcc -Wall passthrough.cc `pkg-config fuse3 --cflags --libs` -o passthrough
+ *     g++ -Wall passthrough.cc `pkg-config fuse3 --cflags --libs` -o passthrough
  *
  * ## Source code ##
  * \include passthrough.c
@@ -401,31 +401,31 @@ int main(int argc, char *argv[])
 {
 	xmp_oper.init           = xmp_init;
 	xmp_oper.getattr	= xmp_getattr;
-	xmp_oper.access		= xmp_access;
-	xmp_oper.readlink	= xmp_readlink;
+//	xmp_oper.access		= xmp_access;
+//	xmp_oper.readlink	= xmp_readlink;
 	xmp_oper.readdir	= xmp_readdir;
-	xmp_oper.mknod		= xmp_mknod;
+//	xmp_oper.mknod		= xmp_mknod;
 	xmp_oper.mkdir		= xmp_mkdir;
-	xmp_oper.symlink	= xmp_symlink;
+//	xmp_oper.symlink	= xmp_symlink;
 	xmp_oper.unlink		= xmp_unlink;
 	xmp_oper.rmdir		= xmp_rmdir;
 	xmp_oper.rename		= xmp_rename;
-	xmp_oper.link		= xmp_link;
-	xmp_oper.chmod		= xmp_chmod;
-	xmp_oper.chown		= xmp_chown;
-	xmp_oper.truncate	= xmp_truncate;
+//	xmp_oper.link		= xmp_link;
+//	xmp_oper.chmod		= xmp_chmod;
+//	xmp_oper.chown		= xmp_chown;
+//	xmp_oper.truncate	= xmp_truncate;
 	xmp_oper.utimens	= xmp_utimens;
 	xmp_oper.open		= xmp_open;
 	xmp_oper.read		= xmp_read;
 	xmp_oper.write		= xmp_write;
-	xmp_oper.statfs		= xmp_statfs;
-	xmp_oper.release	= xmp_release;
-	xmp_oper.fsync		= xmp_fsync;
-	xmp_oper.fallocate	= xmp_fallocate;
-	xmp_oper.setxattr	= xmp_setxattr;
-	xmp_oper.getxattr	= xmp_getxattr;
-	xmp_oper.listxattr	= xmp_listxattr;
-	xmp_oper.removexattr	= xmp_removexattr;
+//	xmp_oper.statfs		= xmp_statfs;
+//	xmp_oper.release	= xmp_release;
+//	xmp_oper.fsync		= xmp_fsync;
+//	xmp_oper.fallocate	= xmp_fallocate;
+//	xmp_oper.setxattr	= xmp_setxattr;
+//	xmp_oper.getxattr	= xmp_getxattr;
+//	xmp_oper.listxattr	= xmp_listxattr;
+//	xmp_oper.removexattr	= xmp_removexattr;
 
 	umask(0);
 	return fuse_main(argc, argv, &xmp_oper, NULL);

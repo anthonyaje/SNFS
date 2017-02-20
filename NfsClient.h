@@ -225,6 +225,49 @@ class NfsClient {
 
   }
 
+  int rpc_utimens(const char *path, const struct timespec *ts, struct fuse_file_info *fi) {
+      UtimensRequest input;
+      ClientContext context;
+      input.set_sec(ts->tv_sec);
+      input.set_nsec(ts->tv_nsec);
+      input.set_sec2((ts + sizeof(timespec))->tv_sec);
+      input.set_nsec2((ts + sizeof(timespec))->tv_nsec);
+
+      input.set_path(path);
+
+
+      OutputInfo result;
+      Status status = stub_->nfsfuse_utimens(&context, input, &result);
+
+      if (result.err() == -1) {
+          std::cout << "error " << result.str() << std::endl;
+          return -1;
+      }
+      return 0;
+  }
+
+
+  int rpc_mknod(const char *path, mode_t mode, dev_t rdev) {
+      MknodRequest input;
+      ClientContext context;
+      input.set_path(path);
+      input.set_mode(mode);
+      input.set_rdev(rdev);
+      OutputInfo result;
+
+      Status status = stub_->nfsfuse_mknod(&context, input, &result);
+
+      if (result.err() == -1) {
+          std::cout << "error " << result.str() << std::endl;
+          return -1;
+      }
+      return 0;
+
+
+  }
+
+
+
  private:
     std::unique_ptr<NFS::Stub> stub_;
 };
