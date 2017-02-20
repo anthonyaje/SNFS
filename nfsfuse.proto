@@ -14,7 +14,7 @@ message Dirent {
 	uint32 dino  =1; 
 	string dname = 2;
 	uint32 dtype = 3;
-	uint32 err = 4;
+	int32 err = 4;
 }
 
 
@@ -33,7 +33,7 @@ message Stat {
     uint32    mtime = 11;   // time of last modification
     uint32    ctime = 12;   // time of last status change
     
-    uint32    err = 14; 
+    int32    err = 13; 
 }
 
 message FuseFileInfo{
@@ -43,13 +43,15 @@ message FuseFileInfo{
     uint64 lockowner = 5;
     uint32 pollevent = 6;
 
-    uint32 err = 4;
+    int32 err = 4;
     string path = 7;
 }
 
 message ReadResult{
     int32 bytesread = 1;
     bytes buffer = 2;
+    
+    int32 err = 3;
 }
 
 message ReadRequest{
@@ -90,12 +92,12 @@ message CreateResult{
 
 message MkdirRequest {
     string s = 1;
-    uint32 mode = 2;
+    int32 mode = 2;
 }
 
 message OutputInfo {
     string str = 1;
-    uint32 err = 2;
+    int32 err = 2;
 }
 
 message RenameRequest {
