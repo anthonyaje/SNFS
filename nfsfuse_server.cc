@@ -310,19 +310,43 @@ class NfsServiceImpl final : public NFS::Service {
     Status nfsfuse_utimens(ServerContext* context, const UtimensRequest* input,
                                          OutputInfo* reply) override {
         cout<<"[DEBUG] : utimens " << endl;
-
-        char server_path[512]={0};
+	cout << "long size: " << sizeof(long) << endl;
+	cout << "time_t size: " << sizeof(time_t) << endl;
+        
+	char server_path[512]={0};
         translatePath(input->path().c_str(), server_path);
         cout << "server path: " << server_path << endl;
 
-	    struct timespec ts[2];
-	    ts[0].tv_sec = input->sec();
-	    ts[0].tv_nsec = input->nsec();
-	    ts[1].tv_sec = input->sec2();
-	    ts[1].tv_nsec = input->nsec2();
 
-        int res = utimensat(0, server_path, ts, AT_SYMLINK_NOFOLLOW);
-        if (res == -1) {
+
+        struct timespec ts[2];
+	long oo;
+	int ii;
+
+	cout << "sec type: " << typeid(ts[0].tv_sec).name() << endl;
+        cout << "nsec type: " << typeid(ts[0].tv_nsec).name() << endl;
+	cout << "long type: " << typeid(oo).name() << endl;
+	cout << "int type: " << typeid(ii).name() << endl;	
+
+	ts[0].tv_sec = input->sec();
+	ts[0].tv_nsec = input->nsec();
+	//ts[0].tv_nsec = UTIME_NOW;
+	ts[1].tv_sec = input->sec2();
+	ts[1].tv_nsec = input->nsec2();
+	//ts[1].tv_nsec = UTIME_NOW;
+
+	//ts[0].tv_sec = 100;
+	//ts[0].tv_nsec = 1000;
+	//ts[1].tv_sec = 200;
+	//ts[1].tv_nsec = 2000;
+
+	cout << "ts[0]:" << ts[0].tv_sec << "  " << ts[0].tv_nsec << endl;
+        cout << "ts[1]:" << ts[1].tv_sec << "  " << ts[1].tv_nsec << endl;
+
+        int res = utimensat(AT_FDCWD, server_path, ts, AT_SYMLINK_NOFOLLOW);
+        cout << "done  res:" << res << endl;
+
+	if (res == -1) {
             perror(strerror(errno));
             reply->set_err(errno);
             return Status::OK;

@@ -29,9 +29,9 @@ message Stat {
     sint64     size = 7;    // total size, in bytes 
     sint64 blksize = 8; // blocksize for file system I/O 
     sint64  blocks = 9;  // number of 512B blocks allocated 
-    uint32    atime = 10;   // time of last access 
-    uint32    mtime = 11;   // time of last modification
-    uint32    ctime = 12;   // time of last status change
+    int32    atime = 10;   // time of last access 
+    int32    mtime = 11;   // time of last modification
+    int32    ctime = 12;   // time of last status change
     
     int32    err = 13; 
 }
@@ -108,10 +108,10 @@ message RenameRequest {
 
 message UtimensRequest {
     string path = 1;
-    uint32 sec = 2;
-    uint64 nsec = 3;
-    uint32 sec2 = 4;
-    uint64 nsec2 = 5;
+    int32 sec = 2;
+    int64 nsec = 3;
+    int32 sec2 = 4;
+    int64 nsec2 = 5;
 }
 
 message MknodRequest {

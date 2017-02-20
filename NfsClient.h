@@ -215,10 +215,10 @@ class NfsClient {
   int rpc_utimens(const char *path, const struct timespec *ts, struct fuse_file_info *fi) {
       UtimensRequest input;
       ClientContext context;
-      input.set_sec(ts->tv_sec);
-      input.set_nsec(ts->tv_nsec);
-      input.set_sec2((ts + sizeof(timespec))->tv_sec);
-      input.set_nsec2((ts + sizeof(timespec))->tv_nsec);
+      input.set_sec(ts[0].tv_sec);
+      input.set_nsec(ts[0].tv_nsec);
+      input.set_sec2(ts[1].tv_sec);
+      input.set_nsec2(ts[1].tv_nsec);
 
       input.set_path(path);
 

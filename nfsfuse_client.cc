@@ -112,6 +112,11 @@ static int client_rename(const char *from, const char *to, unsigned int flags)
 static int client_utimens(const char *path, const struct timespec ts[2],
 		       struct fuse_file_info *fi)
 {
+    cout << "ts0 sec:" << ts[0].tv_sec << endl;
+    cout << "ts0 nsec:" << ts[0].tv_nsec << endl;
+    cout << "ts1 sec:" << ts[1].tv_sec << endl;
+    cout << "ts1 nsec:" << ts[1].tv_nsec << endl;
+
     return options.nfsclient->rpc_utimens(path, ts, fi);
 }
 
