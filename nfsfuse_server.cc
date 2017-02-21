@@ -175,6 +175,9 @@ class NfsServiceImpl final : public NFS::Service {
 
         int res = pwrite(fd, wr->buffer().c_str(), wr->size(), wr->offset());
 		cout<<"[DEBUG] : nfsfuse_write: res"<<res<<endl;
+
+        fsync(fd);
+
         if(res == -1){
             reply->set_err(errno);
             perror(strerror(errno));
