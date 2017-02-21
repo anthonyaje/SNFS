@@ -13,13 +13,16 @@ PROTOS_PATH = ./
 
 vpath %.proto $(PROTOS_PATH)
 
-all: system-check nfsfuse_client nfsfuse_server
+all: system-check nfsfuse_client nfsfuse_server batch_write
 
 nfsfuse_client: nfsfuse.pb.o nfsfuse.grpc.pb.o nfsfuse_client.o 
 	$(CXX) $^ $(LDFLAGS) -o $@
 
 nfsfuse_server: nfsfuse.pb.o nfsfuse.grpc.pb.o nfsfuse_server.o
 	$(CXX) $^ $(LDFLAGS) -o $@
+
+batch_write: batch_write.cc
+	$(CXX) batch_write.cc -o $@
 
 .PRECIOUS: %.grpc.pb.cc
 %.grpc.pb.cc: %.proto
@@ -30,7 +33,7 @@ nfsfuse_server: nfsfuse.pb.o nfsfuse.grpc.pb.o nfsfuse_server.o
 	$(PROTOC) -I $(PROTOS_PATH) --cpp_out=. $<
 
 clean:
-	rm -f *.o *.pb.cc *.pb.h nfsfuse_client nfsfuse_server 
+	rm -f *.o *.pb.cc *.pb.h nfsfuse_client nfsfuse_server batch_write
 
 
 # The following is to test your system and ensure a smoother experience.
