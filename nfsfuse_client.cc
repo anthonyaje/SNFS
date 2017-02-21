@@ -125,6 +125,33 @@ static int client_mknod(const char *path, mode_t mode, dev_t rdev)
     return options.nfsclient->rpc_mknod(path, mode, rdev);
 }
 
+static int client_flush(const char *path, struct fuse_file_info *fi)
+{
+    int res;
+
+    (void) path;
+    /* This is called from every close on an open file, so call the
+       close on the underlying filesystem.  But since flush may be
+       called multiple times for an open file, this must not really
+       close the file.  This is important if used on a network
+       filesystem like NFS which flush the data/metadata on close() */
+/*    res = close(dup(fi->fh));
+    if (res == -1)
+        return -errno;
+*/
+    cout<<"FLUSH is called !!!!!!!!!!!!!!!!!!!!!!!!! "<<endl;
+    return 0;
+}
+
+static int client_release(const char *path, struct fuse_file_info *fi)
+{
+    (void) path;
+    cout<<"RELEASE is called !!!!!!!!!!!!!!!!!!!!!!!!! "<<endl;
+//    close(fi->fh);
+    cout<<"RELEASE Fh is: "<<fi->fh<<endl;
+    return options.nfsclient->rpc_release(fi->fh);
+}
+
 static struct client_operations : fuse_operations {
     client_operations(){
         init = client_init;
@@ -134,16 +161,15 @@ static struct client_operations : fuse_operations {
         read = client_read;
         write = client_write;
         create  = client_create;
-	mkdir	= client_mkdir;
-	rmdir = client_rmdir;
-	unlink  = client_unlink;
-	rename = client_rename;
-	utimens = client_utimens;
-	mknod = client_mknod;
-	/*
+        mkdir	= client_mkdir;
+        rmdir = client_rmdir;
+        unlink  = client_unlink;
+        rename = client_rename;
+        utimens = client_utimens;
+        mknod = client_mknod;
         flush   = client_flush;
         release = client_release;
-	*/
+	
     }
 
 } client_oper;

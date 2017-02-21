@@ -3,6 +3,7 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <vector>
 
 using grpc::Channel;
 using grpc::Status;
@@ -18,6 +19,7 @@ struct sdata{
     char b[10];
 };
 
+vector<WriteRequest> PendingWrites;
 
 class NfsClient {
  public:
@@ -125,6 +127,10 @@ class NfsClient {
         wreq.set_size(size);
         wreq.set_offset(offset);
         wreq.set_buffer(buf);
+        
+        PendingWrites.push_back(wreq);
+        cout<<"Vector is pushed. offset :"<<PendingWrites.back().offset()<<endl;
+        cout<<"Vector is pushed. size :"<<PendingWrites.back().size()<<endl;
         
         WriteResult wres;
 
@@ -248,7 +254,27 @@ class NfsClient {
 
   }
 
-
+    int rpc_release(int fh)
+    {
+        ClientContext ctx;
+        FileDesc fileDesc;
+        Errno er;
+        cout<<"in rpc_release"<<endl;
+        fileDesc.set_fh(fh);
+        Status status = stub_->nfsfuse_release(&ctx, fileDesc, &er);
+        if(er.err() != 0){
+            std::cout << "error: nfsfuse_mknod() fails" << std::endl;
+            return -1;
+        }else{
+            //todo timeout if response take too long
+            for(int i=0; i<PendingWrites.size(); i++){
+                cout<<"Vector is pop. offset :"<<PendingWrites.back().offset()<<endl;
+                PendingWrites.pop_back();
+            }
+            return 0;
+        }
+        
+      }
 
  private:
     std::unique_ptr<NFS::Stub> stub_;

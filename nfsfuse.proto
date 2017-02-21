@@ -120,6 +120,14 @@ message MknodRequest {
     uint32 rdev = 3;
 }
 
+message FileDesc {
+    int32 fh = 1;
+}
+
+message Errno {
+    int32 err = 1;
+}
+
 service NFS {
     rpc nfsfuse_getattr(String) returns (Stat) {}
     rpc nfsfuse_readdir(String) returns (stream Dirent){}
@@ -133,6 +141,8 @@ service NFS {
     rpc nfsfuse_rename(RenameRequest) returns (OutputInfo){}
     rpc nfsfuse_utimens(UtimensRequest) returns (OutputInfo){}
     rpc nfsfuse_mknod(MknodRequest) returns (OutputInfo){}
+    rpc nfsfuse_release(FileDesc) returns (Errno){}
+    rpc nfsfuse_flush(FileDesc) returns (Errno){}
 }
 
 

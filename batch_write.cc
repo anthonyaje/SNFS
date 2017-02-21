@@ -5,7 +5,7 @@
 using namespace std;
 
 
-#define ROUND 10000
+#define ROUND 1000
 
 
 char message[500];
@@ -29,6 +29,8 @@ int main() {
 	for (i = 0; i < ROUND; i++) {
 		fout << message;
 	}
+    fout<<"#################### END";
+    //probably take timestamp here because we tolerates the disk write latenct to close();
 	fout.close();
 
 	gettimeofday(&tv, NULL);

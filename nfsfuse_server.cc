@@ -6,7 +6,7 @@
 #include <unistd.h>
 #include <dirent.h>
 #include <fcntl.h>
-
+#include <vector>
 #include <grpc++/grpc++.h>
 
 #include "nfsfuse.grpc.pb.h"
@@ -28,6 +28,8 @@ struct sdata{
 	int a;
 	char b[10]={};
 };
+
+vector<WriteRequest> PendingWrites;
 
 void translatePath(const char* client_path, char* server_path){
     strcat(server_path, "./server");
@@ -162,8 +164,15 @@ class NfsServiceImpl final : public NFS::Service {
 
     Status nfsfuse_write(ServerContext* context, const WriteRequest* wr, 
             WriteResult* reply) override {
-        char path[512] = {0};
-        translatePath(wr->path().c_str(), path);
+        
+		cout<<"[DEBUG] : nfsfuse_write:"<<endl;
+        WriteRequest WR(*wr);
+        PendingWrites.push_back(WR);
+        cout<<"Vector is pushed. offset :"<<PendingWrites.back().offset()<<endl;
+        reply->set_nbytes(wr->size());
+        reply->set_err(0);
+
+/*
         int fd = open(path, O_WRONLY);
 		cout<<"[DEBUG] : nfsfuse_write: path "<<path<<endl;
 		cout<<"[DEBUG] : nfsfuse_write: fd "<<fd<<endl;
@@ -186,6 +195,7 @@ class NfsServiceImpl final : public NFS::Service {
     
         if(fd>0)
             close(fd);
+*/
 
         return Status::OK;
     }
@@ -379,6 +389,55 @@ class NfsServiceImpl final : public NFS::Service {
 	    }
 
         reply->set_err(0);
+        return Status::OK;
+    }
+
+    Status nfsfuse_release(ServerContext* context, const FileDesc* input,
+                        Errno* reply) override {
+        cout<<"[DEBUG] : release " << endl;
+        char path[512] = {0};
+        translatePath(PendingWrites.begin()->path().c_str(), path);
+
+        //todo fsync and release vector
+        string accumulate;
+        int start_offset = PendingWrites.begin()->offset();
+        unsigned int total_size = 0; 
+        for(int i=0; i<PendingWrites.size(); i++){    
+            accumulate.append(PendingWrites.at(i).buffer());
+            total_size += PendingWrites.at(i).size();
+        }
+        
+        int fd = open(path, O_WRONLY);
+        cout<<"[DEBUG] : release open fd: "<<fd<< endl;
+        if(fd == -1){
+            cout<<"[DEBUG] : batch open fails!"<<endl;
+            reply->set_err(errno);
+            perror(strerror(errno));
+            return Status::OK;
+        } 
+        
+        //int fd = input->fh();
+        int res = pwrite(fd, accumulate.c_str(), total_size, start_offset);
+		cout<<"[DEBUG] : nfsfuse_write: BATCH res"<<res<<endl;
+        if(res == -1){
+            reply->set_err(errno);
+            perror(strerror(errno));
+            return Status::OK;
+        }
+
+        fsync(fd);
+        close(fd);
+        res = close(input->fh());
+
+        for(int i=0; i<PendingWrites.size(); i++){
+            cout<<"Vector is pop. offset :"<<PendingWrites.back().offset()<<endl;
+            PendingWrites.pop_back();
+        }
+        cout<<"Vector after pop. size :"<<PendingWrites.size()<<endl;
+
+    
+        //reply->set_nbytes(res);
+	    reply->set_err(0);
         return Status::OK;
     }
 
