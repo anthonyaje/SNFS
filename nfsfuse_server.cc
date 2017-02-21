@@ -428,8 +428,11 @@ class NfsServiceImpl final : public NFS::Service {
         fsync(fd);
         close(fd);
         res = close(input->fh());
+		
+        int vec_size = PendingWrites.size();
 
-        for(int i=0; i<PendingWrites.size(); i++){
+
+        for(int i=0; i<vec_size; i++){
             cout<<"Vector is pop. offset :"<<PendingWrites.back().offset()<<endl;
             PendingWrites.pop_back();
         }

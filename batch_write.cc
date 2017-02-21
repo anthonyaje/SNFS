@@ -5,7 +5,7 @@
 using namespace std;
 
 
-#define ROUND 1000
+#define ROUND 10000
 
 
 char message[500];
