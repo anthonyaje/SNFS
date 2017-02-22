@@ -399,6 +399,12 @@ class NfsServiceImpl final : public NFS::Service {
                         Errno* reply) override {
         cout<<"[DEBUG] : release " << endl;
         char path[512] = {0};
+        if (PendingWrites.size() == 0) {
+            close(input->fh());
+            reply->set_err(0);
+            return Status::OK;
+        }
+
         translatePath(PendingWrites.begin()->path().c_str(), path);
 
         //todo fsync and release vector
