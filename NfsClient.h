@@ -4,6 +4,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <vector>
+#include <sys/time.h>
 
 using grpc::Channel;
 using grpc::Status;
@@ -13,6 +14,11 @@ using grpc::ClientReader;
 using namespace nfsfuse;
 
 using namespace std;
+
+struct timeval tv, tv2;
+unsigned long t1, t2;
+float elapse_time;
+
 
 struct sdata{
     int a;
@@ -171,8 +177,8 @@ class NfsClient {
         wreq.set_buffer(buf);
         
         PendingWrites.push_back(wreq);
-        cout<<"Vector is pushed. offset :"<<PendingWrites.back().offset()<<endl;
-        cout<<"Vector is pushed. size :"<<PendingWrites.back().size()<<endl;
+        //cout<<"Vector is pushed. offset :"<<PendingWrites.back().offset()<<endl;
+       // cout<<"Vector is pushed. size :"<<PendingWrites.back().size()<<endl;
         
         WriteResult wres;
 
@@ -445,6 +451,10 @@ class NfsClient {
 
     int rpc_commit(int fh, int first_off, int last_off)
     {
+
+		gettimeofday(&tv, NULL);
+		t1 = 1000000*tv.tv_sec + tv.tv_usec;	
+
         ClientContext ctx;
         CommitRequest commitReq;
         CommitResult commitRes;
@@ -478,7 +488,15 @@ class NfsClient {
                 res = this->retransmissionall();
             else
                 res = this->retransmission(server_off);
-                
+        
+			gettimeofday(&tv, NULL);
+			t2 = 1000000*tv.tv_sec + tv.tv_usec;	
+    		elapse_time = (float) (t2-t1) / (1000);
+
+			cout << "Retransmission time: " << elapse_time << " ms" << endl;
+
+
+        
             if(res != 0){
                 cout<<"erro: rpc_commit() retransmission fails"<<endl;
                 perror(strerror(errno));
@@ -499,10 +517,10 @@ class NfsClient {
             //assumming that if the code reach this point then commit is already acked      
             int bound = PendingWrites.size();
             for(int i=0; i<bound; i++){
-                cout<<"Vector is pop. offset :"<<PendingWrites.back().offset()<<endl;
+                //cout<<"Vector is pop. offset :"<<PendingWrites.back().offset()<<endl;
                 PendingWrites.pop_back();
             }
-            cout<<"Vector is pop. size :"<<PendingWrites.size()<<endl;
+            //cout<<"Vector is pop. size :"<<PendingWrites.size()<<endl;
             return 0;
         }
         
