@@ -80,6 +80,12 @@ static int client_read(const char *path, char *buf, size_t size, off_t offset,
 static int client_write(const char *path, const char *buf, size_t size,
              off_t offset, struct fuse_file_info *fi)
 {
+//  test server crash upon commit
+    kill_times++;
+    if (kill_times == 5000) {
+        options.nfsclient->rpc_kill();
+    }
+//------------------------------------
     return options.nfsclient->rpc_write(path, buf, size, offset, fi);
 }
 
@@ -148,12 +154,6 @@ static int client_release(const char *path, struct fuse_file_info *fi)
     (void) path;
     cout<<"RELEASE is called !!!!!!!!!!!!!!!!!!!!!!!!! "<<endl;
 //    close(fi->fh);
-//-------------------------------
-//	test server crash upon commit
-    if (kill_times == 0) {
-        kill_times++;
-        options.nfsclient->rpc_kill();
-    }
 //-------------------------------
 
     return options.nfsclient->rpc_commit(fi->fh, PendingWrites.begin()->offset(), 

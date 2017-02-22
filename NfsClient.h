@@ -4,6 +4,8 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <vector>
+#include <sys/time.h>
+
 
 using grpc::Channel;
 using grpc::Status;
@@ -13,6 +15,11 @@ using grpc::ClientReader;
 using namespace nfsfuse;
 
 using namespace std;
+
+struct timeval tv, tv2;
+unsigned long t1, t2;
+float elapse_time;
+
 
 struct sdata{
     int a;
@@ -445,6 +452,10 @@ class NfsClient {
 
     int rpc_commit(int fh, int first_off, int last_off)
     {
+
+	    gettimeofday(&tv, NULL);
+	    t1 = 1000000*tv.tv_sec + tv.tv_usec;	
+
         ClientContext ctx;
         CommitRequest commitReq;
         CommitResult commitRes;
@@ -456,7 +467,8 @@ class NfsClient {
         std::cout << "nfsfuse_commit() PendigWrites size: " << PendingWrites.size() <<std::endl;
         std::cout << "nfsfuse_commit() firstoff: " << commitReq.firstoff()<<std::endl;
         std::cout << "nfsfuse_commit() lastoff: " << PendingWrites.back().offset() <<std::endl;
-
+		std::cout << "first stub commit" << endl;
+		//sleep(5);
         Status status = stub_->nfsfuse_commit(&ctx, commitReq, &commitRes);
         while (!status.ok()) {
 
@@ -466,7 +478,8 @@ class NfsClient {
             status = stub_->nfsfuse_commit(&ctx2, commitReq, &commitRes);
 
         }
-
+		std::cout << "reconnect success" << endl;
+		//sleep(5);
         if(commitRes.err() != 0){
             // TODO retransmission mechanism
             // ASSUMPTION: during retransmission server is never crash again
@@ -474,11 +487,17 @@ class NfsClient {
             std::cout << "error: nfsfuse_commit() fails" << std::endl;
             int server_off = commitRes.serveroff();
             int res;
+			std:cout << "retrans begin" << endl;
+			//sleep(5);
             if(commitRes.err() == 2)
                 res = this->retransmissionall();
             else
                 res = this->retransmission(server_off);
-                
+
+	        gettimeofday(&tv, NULL);
+	        t2 = 1000000*tv.tv_sec + tv.tv_usec;	
+            elapse_time = (float) (t2-t1) / (1000);
+			cout << "Commit and Retransmittion time: " << elapse_time << " ms" << endl;    
             if(res != 0){
                 cout<<"erro: rpc_commit() retransmission fails"<<endl;
                 perror(strerror(errno));
@@ -499,10 +518,10 @@ class NfsClient {
             //assumming that if the code reach this point then commit is already acked      
             int bound = PendingWrites.size();
             for(int i=0; i<bound; i++){
-                cout<<"Vector is pop. offset :"<<PendingWrites.back().offset()<<endl;
+               // cout<<"Vector is pop. offset :"<<PendingWrites.back().offset()<<endl;
                 PendingWrites.pop_back();
             }
-            cout<<"Vector is pop. size :"<<PendingWrites.size()<<endl;
+            //cout<<"Vector is pop. size :"<<PendingWrites.size()<<endl;
             return 0;
         }
         
