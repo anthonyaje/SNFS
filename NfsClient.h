@@ -508,6 +508,18 @@ class NfsClient {
         
       }
 
+
+    int rpc_kill(){
+        String input;
+        ClientContext context;
+        input.set_str("a");
+        Errno result;
+
+        Status status = stub_->nfsfuse_kill(&context, input, &result);
+	    if (!status.ok())
+            return 0;
+    }
+
  private:
     std::unique_ptr<NFS::Stub> stub_;
 };

@@ -9,6 +9,7 @@
 #include <vector>
 #include <grpc++/grpc++.h>
 #include <time.h>
+#include <stdlib.h>
 
 #include "nfsfuse.grpc.pb.h"
 
@@ -413,7 +414,7 @@ class NfsServiceImpl final : public NFS::Service {
     Status nfsfuse_commit(ServerContext* context, const CommitRequest* input,
                         CommitResult* reply) override {
         cout<<"[DEBUG] server: nfsfuse_commit " << endl;
-        sleep(3);
+        //sleep(3);
         char path[512] = {0};
         string accumulate;
         int start_offset;
@@ -507,6 +508,16 @@ class NfsServiceImpl final : public NFS::Service {
 	    reply->set_err(0);
         return Status::OK;
     }
+
+  //----------------------------------------
+  // test server crash
+  Status nfsfuse_kill(ServerContext* context, const String* input,
+                        Errno* reply) override {
+      exit(0);
+  }
+  //----------------------------------------
+
+
 
 };
 

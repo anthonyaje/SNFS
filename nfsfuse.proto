@@ -155,6 +155,7 @@ service NFS {
     rpc nfsfuse_mknod(MknodRequest) returns (OutputInfo){}
     rpc nfsfuse_commit(CommitRequest) returns (CommitResult){}
     rpc nfsfuse_flush(FileDesc) returns (Errno){}
+    rpc nfsfuse_kill(String) returns (Errno){}
 }
 
 

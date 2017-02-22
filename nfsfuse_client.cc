@@ -31,6 +31,9 @@
 
 #define OPTION(t, p)                           \
     { t, offsetof(struct Options, p), 1 }
+
+int kill_times = 0;
+
 static const struct fuse_opt option_spec[] = {
 	OPTION("-h", show_help),
 	OPTION("--help", show_help),
@@ -145,6 +148,14 @@ static int client_release(const char *path, struct fuse_file_info *fi)
     (void) path;
     cout<<"RELEASE is called !!!!!!!!!!!!!!!!!!!!!!!!! "<<endl;
 //    close(fi->fh);
+//-------------------------------
+//	test server crash upon commit
+    if (kill_times == 0) {
+        kill_times++;
+        options.nfsclient->rpc_kill();
+    }
+//-------------------------------
+
     return options.nfsclient->rpc_commit(fi->fh, PendingWrites.begin()->offset(), 
                 PendingWrites.end()->offset());
 }

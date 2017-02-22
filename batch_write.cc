@@ -5,10 +5,10 @@
 using namespace std;
 
 
-#define ROUND 100
+#define ROUND 10240
 
 
-char message[500];
+char message[1024];
 
 int main() {
 
@@ -18,7 +18,7 @@ int main() {
 	
 	int i,j;
 
-	for (i = 0; i < 500; i++)
+	for (i = 0; i < 1024; i++)
 		message[i] = 'a';
 
 
