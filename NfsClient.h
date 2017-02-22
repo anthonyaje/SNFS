@@ -41,6 +41,16 @@ class NfsClient {
         memset(output, 0, sizeof(struct stat));
 
         Status status = stub_->nfsfuse_getattr(&context, p, &result);
+
+        while (!status.ok()) {
+
+            options.nfsclient = new NfsClient(grpc::CreateChannel("0.0.0.0:50051",
+                                              grpc::InsecureChannelCredentials()));
+            ClientContext ctx2;
+            status = stub_->nfsfuse_getattr(&ctx2, p, &result);
+
+        }
+
         if(result.err() != 0){
             std::cout << "errno: " << result.err() << std::endl;
             return -result.err();
@@ -72,6 +82,9 @@ class NfsClient {
         
         std::unique_ptr<ClientReader<Dirent> >reader(
             stub_->nfsfuse_readdir(&ctx, path));
+
+
+
         while(reader->Read(&result)){
             struct stat st;
             memset(&st, 0, sizeof(st));
@@ -101,16 +114,16 @@ class NfsClient {
         fi_req.set_flags(fi->flags);
         
         status = stub_->nfsfuse_open(&ctx, fi_req, &fi_res);
-/*
+
         while (!status.ok()) {
+
             options.nfsclient = new NfsClient(grpc::CreateChannel("0.0.0.0:50051",
                                               grpc::InsecureChannelCredentials()));
+            ClientContext ctx2;
+            status = stub_->nfsfuse_open(&ctx2, fi_req, &fi_res);
 
-
-            status = stub_->nfsfuse_open(&ctx, fi_req, &fi_res);
-            sleep(5);
         }
-*/
+
         if(fi_res.err() == 0)
             fi->fh = fi_res.fh();
 
@@ -128,6 +141,18 @@ class NfsClient {
         ReadResult rres;
 
         Status status = stub_->nfsfuse_read(&clientContext, rr, &rres);
+
+        while (!status.ok()) {
+
+            options.nfsclient = new NfsClient(grpc::CreateChannel("0.0.0.0:50051",
+                                              grpc::InsecureChannelCredentials()));
+            ClientContext ctx2;
+            status = stub_->nfsfuse_read(&ctx2, rr, &rres);
+
+        }
+
+
+
         if(rres.err() == 0){
             strcpy(buf, rres.buffer().c_str());
             return rres.bytesread();
@@ -159,7 +184,7 @@ class NfsClient {
         while (!status.ok()) {
 
             cout << "options new begin" << endl;
-			sleep(8);
+		//	sleep(8);
             options.nfsclient = new NfsClient(grpc::CreateChannel("0.0.0.0:50051",
                                               grpc::InsecureChannelCredentials()));
 			cout << "options end" << endl;
@@ -168,7 +193,7 @@ class NfsClient {
 
 
             cout << "stub function end" << endl;
-            sleep(5);
+          //  sleep(5);
         }
 
 
@@ -193,6 +218,20 @@ class NfsClient {
         creq.set_flags(fi->flags);
         
         Status status = stub_->nfsfuse_create(&ctx, creq, &cres);
+
+        while (!status.ok()) {
+
+            options.nfsclient = new NfsClient(grpc::CreateChannel("0.0.0.0:50051",
+                                              grpc::InsecureChannelCredentials()));
+            ClientContext ctx2;
+            status = stub_->nfsfuse_create(&ctx2, creq, &cres);
+
+        }
+
+
+
+
+
         if(cres.err() == 0)
             fi->fh = cres.fh();   
  
@@ -207,6 +246,17 @@ class NfsClient {
       OutputInfo result;
 
       Status status = stub_->nfsfuse_mkdir(&context, input, &result);
+
+      while (!status.ok()) {
+
+          options.nfsclient = new NfsClient(grpc::CreateChannel("0.0.0.0:50051",
+                                              grpc::InsecureChannelCredentials()));
+          ClientContext ctx2;
+          status = stub_->nfsfuse_mkdir(&context, input, &result);
+
+      }
+
+
     
       if (result.err() != 0) {
           std::cout << "error: nfsfuse_mkdir() fails" << std::endl;
@@ -223,6 +273,17 @@ class NfsClient {
 
       Status status = stub_->nfsfuse_rmdir(&context, input, &result);
 
+      while (!status.ok()) {
+
+          options.nfsclient = new NfsClient(grpc::CreateChannel("0.0.0.0:50051",
+                                              grpc::InsecureChannelCredentials()));
+          ClientContext ctx2;
+          status = stub_->nfsfuse_rmdir(&ctx2, input, &result);
+
+      }
+
+
+
       if (result.err() != 0) {
           std::cout << "error: nfsfuse_rmdir() fails" << std::endl;
       }
@@ -238,6 +299,18 @@ class NfsClient {
       OutputInfo result;
 
       Status status = stub_->nfsfuse_unlink(&context, input, &result);
+
+      while (!status.ok()) {
+
+          options.nfsclient = new NfsClient(grpc::CreateChannel("0.0.0.0:50051",
+                                              grpc::InsecureChannelCredentials()));
+          ClientContext ctx2;
+          status = stub_->nfsfuse_unlink(&ctx2, input, &result);
+
+      }
+
+
+
       if (result.err() != 0) {
           std::cout << "error: nfsfuse_unlink() fails" << std::endl;
       }
@@ -253,6 +326,18 @@ class NfsClient {
       OutputInfo result;
 
       Status status = stub_->nfsfuse_rename(&context, input, &result);
+
+      while (!status.ok()) {
+
+          options.nfsclient = new NfsClient(grpc::CreateChannel("0.0.0.0:50051",
+                                              grpc::InsecureChannelCredentials()));
+          ClientContext ctx2;
+          status = stub_->nfsfuse_rename(&ctx2, input, &result);
+
+      }
+
+
+
       if (result.err() != 0) {
           std::cout << "error: nfsfuse_rename() fails" << std::endl;
       }
@@ -272,6 +357,18 @@ class NfsClient {
 
       OutputInfo result;
       Status status = stub_->nfsfuse_utimens(&context, input, &result);
+
+      while (!status.ok()) {
+
+          options.nfsclient = new NfsClient(grpc::CreateChannel("0.0.0.0:50051",
+                                              grpc::InsecureChannelCredentials()));
+          ClientContext ctx2;
+          status = stub_->nfsfuse_utimens(&ctx2, input, &result);
+
+      }
+
+
+
       if (result.err() != 0) {
           std::cout << "error: nfsfuse_utimens fails" << std::endl;
       }
@@ -288,6 +385,18 @@ class NfsClient {
       OutputInfo result;
 
       Status status = stub_->nfsfuse_mknod(&context, input, &result);
+
+      while (!status.ok()) {
+
+            options.nfsclient = new NfsClient(grpc::CreateChannel("0.0.0.0:50051",
+                                              grpc::InsecureChannelCredentials()));
+            ClientContext ctx2;
+            status = stub_->nfsfuse_mknod(&ctx2, input, &result);
+
+      }
+
+
+
       if (result.err() != 0) {
           std::cout << "error: nfsfuse_mknod() fails" << std::endl;
       }

@@ -172,8 +172,6 @@ class NfsServiceImpl final : public NFS::Service {
         cout<<"Vector is pushed. offset :"<<PendingWrites.back().offset()<<endl;
         reply->set_nbytes(wr->size());
         reply->set_err(0);
-
-        sleep(5);
 		
 /*
         int fd = open(path, O_WRONLY);
