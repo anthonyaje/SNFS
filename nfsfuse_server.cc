@@ -30,6 +30,7 @@ struct sdata{
 };
 
 vector<WriteRequest> PendingWrites;
+vector<WriteRequest> RetransWrites;
 
 void translatePath(const char* client_path, char* server_path){
     strcat(server_path, "./server");
@@ -161,7 +162,6 @@ class NfsServiceImpl final : public NFS::Service {
         return Status::OK;
     }
 
-
     Status nfsfuse_write(ServerContext* context, const WriteRequest* wr, 
             WriteResult* reply) override {
         
@@ -199,6 +199,21 @@ class NfsServiceImpl final : public NFS::Service {
 
         return Status::OK;
     }
+
+
+    Status nfsfuse_retranswrite(ServerContext* context, const WriteRequest* wr,
+            WriteResult* reply) override {
+
+        cout<<"[DEBUG] : nfsfuse_retranswrite:"<<endl;
+        WriteRequest WR(*wr);
+        RetransWrites.push_back(WR);
+        cout<<"Retrans Vector is pushed. offset :"<<RetransWrites.back().offset()<<endl;
+        reply->set_nbytes(wr->size());
+        reply->set_err(0);
+
+        return Status::OK;
+    }
+
 
 
     Status nfsfuse_create(ServerContext* context, const CreateRequest* req,
@@ -392,16 +407,41 @@ class NfsServiceImpl final : public NFS::Service {
         return Status::OK;
     }
 
-    Status nfsfuse_release(ServerContext* context, const FileDesc* input,
-                        Errno* reply) override {
+    Status nfsfuse_commit(ServerContext* context, const CommitRequest* input,
+                        CommitResult* reply) override {
         cout<<"[DEBUG] : release " << endl;
         char path[512] = {0};
+        string accumulate;
+        int start_offset;
+        unsigned int total_size = 0; 
+        
+        if (PendingWrites.size() == 0) {
+            close(input->fh());
+            reply->set_err(0);
+            return Status::OK;
+        }
+
         translatePath(PendingWrites.begin()->path().c_str(), path);
 
+        if(RetransWrites.size() != 0){
+            start_offset = RetransWrites.begin()->offset();
+            for(int i=0; i<RetransWrites.size(); i++){    
+                accumulate.append(RetransWrites.at(i).buffer());
+                total_size += RetransWrites.at(i).size();
+            }
+        }
+        else if(input->firstoff() != PendingWrites.begin()->offset()){
+            //FIXME ask for retransmission  
+            reply->set_serveroff(PendingWrites.begin()->offset());
+            reply->set_err(-1);
+            return Status::OK;
+        } 
+        else{
+            start_offset = PendingWrites.begin()->offset();
+            
+        }
+
         //todo fsync and release vector
-        string accumulate;
-        int start_offset = PendingWrites.begin()->offset();
-        unsigned int total_size = 0; 
         for(int i=0; i<PendingWrites.size(); i++){    
             accumulate.append(PendingWrites.at(i).buffer());
             total_size += PendingWrites.at(i).size();
@@ -427,13 +467,21 @@ class NfsServiceImpl final : public NFS::Service {
 
         fsync(fd);
         close(fd);
-        res = close(input->fh());
-
-        for(int i=0; i<PendingWrites.size(); i++){
-            cout<<"Vector is pop. offset :"<<PendingWrites.back().offset()<<endl;
+        //res = close(input->fh());
+        int bound = PendingWrites.size();
+        for(int i=0; i<bound; i++){
+            cout<<"Pending Vector is pop. offset :"<<PendingWrites.back().offset()<<endl;
             PendingWrites.pop_back();
         }
-        cout<<"Vector after pop. size :"<<PendingWrites.size()<<endl;
+        
+        bound = RetransWrites.size();
+        for(int i=0; i<bound; i++){
+            cout<<"Retransmit Vector is pop. offset :"<<RetransWrites.back().offset()<<endl;
+            RetransWrites.pop_back();
+        }
+        
+        cout<<"Pending Vector after pop. size :"<<PendingWrites.size()<<endl;
+        cout<<"Retransmit Vector after pop. size :"<<RetransWrites.size()<<endl;
 
     
         //reply->set_nbytes(res);

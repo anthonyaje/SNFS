@@ -148,8 +148,8 @@ static int client_release(const char *path, struct fuse_file_info *fi)
     (void) path;
     cout<<"RELEASE is called !!!!!!!!!!!!!!!!!!!!!!!!! "<<endl;
 //    close(fi->fh);
-    cout<<"RELEASE Fh is: "<<fi->fh<<endl;
-    return options.nfsclient->rpc_release(fi->fh);
+    return options.nfsclient->rpc_commit(fi->fh, PendingWrites.begin()->offset(), 
+                PendingWrites.end()->offset());
 }
 
 static struct client_operations : fuse_operations {

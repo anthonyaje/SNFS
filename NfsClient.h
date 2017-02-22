@@ -254,19 +254,60 @@ class NfsClient {
 
   }
 
-    int rpc_release(int fh)
+    int retransmission(int end_offset){
+        if(PendingWrites.size() == 0){
+            printf("vector is empty\n");
+            return -1;
+        }
+
+        vector<WriteRequest>::const_iterator it = PendingWrites.begin();
+        while(it != PendingWrites.end()){
+            WriteResult wres;
+            ClientContext ctx;
+            if(it->offset() == end_offset)
+                break; //don't need to send. This is the first entry in server. 
+            Status status = stub_->nfsfuse_retranswrite(&ctx, *it, &wres);
+        }
+        return 0;
+    }
+
+
+    int rpc_commit(int fh, int first_off, int last_off)
     {
         ClientContext ctx;
-        FileDesc fileDesc;
-        Errno er;
-        cout<<"in rpc_release"<<endl;
-        fileDesc.set_fh(fh);
-        Status status = stub_->nfsfuse_release(&ctx, fileDesc, &er);
-        if(er.err() != 0){
-            std::cout << "error: nfsfuse_mknod() fails" << std::endl;
-            return -1;
+        CommitRequest commitReq;
+        CommitResult commitRes;
+        
+        commitReq.set_fh(fh);
+        commitReq.set_firstoff(first_off);
+        commitReq.set_endoff(last_off);
+
+        Status status = stub_->nfsfuse_commit(&ctx, commitReq, &commitRes);
+        if(commitRes.err() != 0){
+            // TODO retransmission mechanism
+            // ASSUMPTION: during retransmission server is never crash again
+
+            std::cout << "error: nfsfuse_commit() fails" << std::endl;
+            int server_off = commitRes.serveroff();
+            int res = this->retransmission(server_off);
+            if(res != 0){
+                cout<<"erro: rpc_commit() retransmission fails"<<endl;
+                perror(strerror(errno));
+                return -1;
+            }
+            
+            //res = this->rpc_commit(fh, first_off, server_off);
+            res = this->rpc_commit(fh, first_off, last_off);
+            if(res != 0){
+                cout<<"erro: this.rpc_commit() retransmission fails"<<endl;
+                perror(strerror(errno));
+                return -1;
+            }
+    
+            return 0;
+
         }else{
-            //todo timeout if response take too long
+            //assumming that if the code reach this point then commit is already acked
             for(int i=0; i<PendingWrites.size(); i++){
                 cout<<"Vector is pop. offset :"<<PendingWrites.back().offset()<<endl;
                 PendingWrites.pop_back();

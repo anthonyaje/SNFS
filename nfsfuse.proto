@@ -128,12 +128,24 @@ message Errno {
     int32 err = 1;
 }
 
+message CommitRequest {
+    int32 firstoff = 1;
+    int32 endoff = 2;
+    int32 fh = 3;
+}
+
+message CommitResult {
+    int32 err = 1;
+    int32 serveroff = 2;
+}
+
 service NFS {
     rpc nfsfuse_getattr(String) returns (Stat) {}
     rpc nfsfuse_readdir(String) returns (stream Dirent){}
     rpc nfsfuse_open(FuseFileInfo) returns (FuseFileInfo) {}
     rpc nfsfuse_read(ReadRequest) returns (ReadResult) {}
     rpc nfsfuse_write(WriteRequest) returns (WriteResult){}
+    rpc nfsfuse_retranswrite(WriteRequest) returns (WriteResult){}
     rpc nfsfuse_create(CreateRequest) returns (CreateResult) {}
     rpc nfsfuse_mkdir(MkdirRequest) returns (OutputInfo){}
     rpc nfsfuse_rmdir(String) returns (OutputInfo){}
@@ -141,7 +153,7 @@ service NFS {
     rpc nfsfuse_rename(RenameRequest) returns (OutputInfo){}
     rpc nfsfuse_utimens(UtimensRequest) returns (OutputInfo){}
     rpc nfsfuse_mknod(MknodRequest) returns (OutputInfo){}
-    rpc nfsfuse_release(FileDesc) returns (Errno){}
+    rpc nfsfuse_commit(CommitRequest) returns (CommitResult){}
     rpc nfsfuse_flush(FileDesc) returns (Errno){}
 }
 
