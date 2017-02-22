@@ -8,6 +8,7 @@
 #include <fcntl.h>
 #include <vector>
 #include <grpc++/grpc++.h>
+#include <time.h>
 
 #include "nfsfuse.grpc.pb.h"
 
@@ -31,6 +32,7 @@ struct sdata{
 
 vector<WriteRequest> PendingWrites;
 vector<WriteRequest> RetransWrites;
+bool flag_read = false;
 
 void translatePath(const char* client_path, char* server_path){
     strcat(server_path, "./server");
@@ -151,6 +153,7 @@ class NfsServiceImpl final : public NFS::Service {
             return Status::OK;
         }
 
+        flag_read = true;
         reply->set_bytesread(res);
         reply->set_buffer(buf);
         reply->set_err(0);
@@ -171,7 +174,7 @@ class NfsServiceImpl final : public NFS::Service {
         cout<<"Vector is pushed. offset :"<<PendingWrites.back().offset()<<endl;
         reply->set_nbytes(wr->size());
         reply->set_err(0);
-
+		
 /*
         int fd = open(path, O_WRONLY);
 		cout<<"[DEBUG] : nfsfuse_write: path "<<path<<endl;
@@ -409,21 +412,34 @@ class NfsServiceImpl final : public NFS::Service {
 
     Status nfsfuse_commit(ServerContext* context, const CommitRequest* input,
                         CommitResult* reply) override {
-        cout<<"[DEBUG] : release " << endl;
+        cout<<"[DEBUG] server: nfsfuse_commit " << endl;
+        sleep(3);
         char path[512] = {0};
         string accumulate;
         int start_offset;
         unsigned int total_size = 0; 
         
-        if (PendingWrites.size() == 0) {
+        //FIXME after restart vector is zero too! 
+        // possible fix: add && read-ed flag
+         
+        if ((PendingWrites.size() == 0) && flag_read) {
+        cout<<"[DEBUG] server: nfsfuse_commit: pending 0 after read" << endl;
             close(input->fh());
             reply->set_err(0);
+            flag_read = false;
             return Status::OK;
         }
 
-        translatePath(PendingWrites.begin()->path().c_str(), path);
 
-        if(RetransWrites.size() != 0){
+        if ((PendingWrites.size() == 0) && (RetransWrites.size() == 0) ){
+        cout<<"[DEBUG] server: nfsfuse_commit: pending size is 0 " << endl;
+            reply->set_serveroff(input->endoff());
+            reply->set_err(2);
+            return Status::OK;
+        }
+        else if(RetransWrites.size() != 0){
+        cout<<"[DEBUG] server: nfsfuse_commit: retrans size != 0" << endl;
+            translatePath(RetransWrites.begin()->path().c_str(), path);
             start_offset = RetransWrites.begin()->offset();
             for(int i=0; i<RetransWrites.size(); i++){    
                 accumulate.append(RetransWrites.at(i).buffer());
@@ -431,13 +447,16 @@ class NfsServiceImpl final : public NFS::Service {
             }
         }
         else if(input->firstoff() != PendingWrites.begin()->offset()){
+        cout<<"[DEBUG] server: nfsfuse_commit: offset not equal " << endl;
             //FIXME ask for retransmission  
             reply->set_serveroff(PendingWrites.begin()->offset());
             reply->set_err(-1);
             return Status::OK;
         } 
         else{
+        cout<<"[DEBUG] server: nfsfuse_commit: offset is equal " << endl;
             start_offset = PendingWrites.begin()->offset();
+            translatePath(PendingWrites.begin()->path().c_str(), path);
             
         }
 

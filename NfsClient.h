@@ -21,6 +21,13 @@ struct sdata{
 
 vector<WriteRequest> PendingWrites;
 
+class NfsClient;
+
+struct Options {
+    NfsClient* nfsclient;
+    int show_help;
+} options;
+
 class NfsClient {
  public:
   NfsClient(std::shared_ptr<Channel> channel)
@@ -34,6 +41,16 @@ class NfsClient {
         memset(output, 0, sizeof(struct stat));
 
         Status status = stub_->nfsfuse_getattr(&context, p, &result);
+
+        while (!status.ok()) {
+
+            options.nfsclient = new NfsClient(grpc::CreateChannel("0.0.0.0:50051",
+                                              grpc::InsecureChannelCredentials()));
+            ClientContext ctx2;
+            status = stub_->nfsfuse_getattr(&ctx2, p, &result);
+
+        }
+
         if(result.err() != 0){
             std::cout << "errno: " << result.err() << std::endl;
             return -result.err();
@@ -65,6 +82,9 @@ class NfsClient {
         
         std::unique_ptr<ClientReader<Dirent> >reader(
             stub_->nfsfuse_readdir(&ctx, path));
+
+
+
         while(reader->Read(&result)){
             struct stat st;
             memset(&st, 0, sizeof(st));
@@ -94,6 +114,16 @@ class NfsClient {
         fi_req.set_flags(fi->flags);
         
         status = stub_->nfsfuse_open(&ctx, fi_req, &fi_res);
+
+        while (!status.ok()) {
+
+            options.nfsclient = new NfsClient(grpc::CreateChannel("0.0.0.0:50051",
+                                              grpc::InsecureChannelCredentials()));
+            ClientContext ctx2;
+            status = stub_->nfsfuse_open(&ctx2, fi_req, &fi_res);
+
+        }
+
         if(fi_res.err() == 0)
             fi->fh = fi_res.fh();
 
@@ -111,6 +141,18 @@ class NfsClient {
         ReadResult rres;
 
         Status status = stub_->nfsfuse_read(&clientContext, rr, &rres);
+
+        while (!status.ok()) {
+
+            options.nfsclient = new NfsClient(grpc::CreateChannel("0.0.0.0:50051",
+                                              grpc::InsecureChannelCredentials()));
+            ClientContext ctx2;
+            status = stub_->nfsfuse_read(&ctx2, rr, &rres);
+
+        }
+
+
+
         if(rres.err() == 0){
             strcpy(buf, rres.buffer().c_str());
             return rres.bytesread();
@@ -134,7 +176,31 @@ class NfsClient {
         
         WriteResult wres;
 
+
+        cout << "stub->write begins!" << endl;
+
         Status status = stub_->nfsfuse_write(&ctx, wreq, &wres);
+
+        while (!status.ok()) {
+
+            cout << "options new begin" << endl;
+		//	sleep(8);
+            options.nfsclient = new NfsClient(grpc::CreateChannel("0.0.0.0:50051",
+                                              grpc::InsecureChannelCredentials()));
+			cout << "options end" << endl;
+			ClientContext ctx2;
+            status = stub_->nfsfuse_write(&ctx2, wreq, &wres);
+
+
+            cout << "stub function end" << endl;
+          //  sleep(5);
+        }
+
+
+
+
+        cout << "stub->write ends!!!" << endl;
+
         if(wres.err() == 0){
             return wres.nbytes();
         } else{
@@ -152,6 +218,20 @@ class NfsClient {
         creq.set_flags(fi->flags);
         
         Status status = stub_->nfsfuse_create(&ctx, creq, &cres);
+
+        while (!status.ok()) {
+
+            options.nfsclient = new NfsClient(grpc::CreateChannel("0.0.0.0:50051",
+                                              grpc::InsecureChannelCredentials()));
+            ClientContext ctx2;
+            status = stub_->nfsfuse_create(&ctx2, creq, &cres);
+
+        }
+
+
+
+
+
         if(cres.err() == 0)
             fi->fh = cres.fh();   
  
@@ -166,6 +246,17 @@ class NfsClient {
       OutputInfo result;
 
       Status status = stub_->nfsfuse_mkdir(&context, input, &result);
+
+      while (!status.ok()) {
+
+          options.nfsclient = new NfsClient(grpc::CreateChannel("0.0.0.0:50051",
+                                              grpc::InsecureChannelCredentials()));
+          ClientContext ctx2;
+          status = stub_->nfsfuse_mkdir(&context, input, &result);
+
+      }
+
+
     
       if (result.err() != 0) {
           std::cout << "error: nfsfuse_mkdir() fails" << std::endl;
@@ -182,6 +273,17 @@ class NfsClient {
 
       Status status = stub_->nfsfuse_rmdir(&context, input, &result);
 
+      while (!status.ok()) {
+
+          options.nfsclient = new NfsClient(grpc::CreateChannel("0.0.0.0:50051",
+                                              grpc::InsecureChannelCredentials()));
+          ClientContext ctx2;
+          status = stub_->nfsfuse_rmdir(&ctx2, input, &result);
+
+      }
+
+
+
       if (result.err() != 0) {
           std::cout << "error: nfsfuse_rmdir() fails" << std::endl;
       }
@@ -197,6 +299,18 @@ class NfsClient {
       OutputInfo result;
 
       Status status = stub_->nfsfuse_unlink(&context, input, &result);
+
+      while (!status.ok()) {
+
+          options.nfsclient = new NfsClient(grpc::CreateChannel("0.0.0.0:50051",
+                                              grpc::InsecureChannelCredentials()));
+          ClientContext ctx2;
+          status = stub_->nfsfuse_unlink(&ctx2, input, &result);
+
+      }
+
+
+
       if (result.err() != 0) {
           std::cout << "error: nfsfuse_unlink() fails" << std::endl;
       }
@@ -212,6 +326,18 @@ class NfsClient {
       OutputInfo result;
 
       Status status = stub_->nfsfuse_rename(&context, input, &result);
+
+      while (!status.ok()) {
+
+          options.nfsclient = new NfsClient(grpc::CreateChannel("0.0.0.0:50051",
+                                              grpc::InsecureChannelCredentials()));
+          ClientContext ctx2;
+          status = stub_->nfsfuse_rename(&ctx2, input, &result);
+
+      }
+
+
+
       if (result.err() != 0) {
           std::cout << "error: nfsfuse_rename() fails" << std::endl;
       }
@@ -231,6 +357,18 @@ class NfsClient {
 
       OutputInfo result;
       Status status = stub_->nfsfuse_utimens(&context, input, &result);
+
+      while (!status.ok()) {
+
+          options.nfsclient = new NfsClient(grpc::CreateChannel("0.0.0.0:50051",
+                                              grpc::InsecureChannelCredentials()));
+          ClientContext ctx2;
+          status = stub_->nfsfuse_utimens(&ctx2, input, &result);
+
+      }
+
+
+
       if (result.err() != 0) {
           std::cout << "error: nfsfuse_utimens fails" << std::endl;
       }
@@ -247,6 +385,18 @@ class NfsClient {
       OutputInfo result;
 
       Status status = stub_->nfsfuse_mknod(&context, input, &result);
+
+      while (!status.ok()) {
+
+            options.nfsclient = new NfsClient(grpc::CreateChannel("0.0.0.0:50051",
+                                              grpc::InsecureChannelCredentials()));
+            ClientContext ctx2;
+            status = stub_->nfsfuse_mknod(&ctx2, input, &result);
+
+      }
+
+
+
       if (result.err() != 0) {
           std::cout << "error: nfsfuse_mknod() fails" << std::endl;
       }
@@ -255,6 +405,7 @@ class NfsClient {
   }
 
     int retransmission(int end_offset){
+        std::cout << "retransmission(): " << std::endl;
         if(PendingWrites.size() == 0){
             printf("vector is empty\n");
             return -1;
@@ -262,11 +413,31 @@ class NfsClient {
 
         vector<WriteRequest>::const_iterator it = PendingWrites.begin();
         while(it != PendingWrites.end()){
+        std::cout << "retransmission(): while offset: " << it->offset()<<std::endl;
             WriteResult wres;
             ClientContext ctx;
             if(it->offset() == end_offset)
                 break; //don't need to send. This is the first entry in server. 
             Status status = stub_->nfsfuse_retranswrite(&ctx, *it, &wres);
+            it++;
+        }
+        return 0;
+    }
+
+    int retransmissionall(){
+        std::cout << "retransmission(): " << std::endl;
+        if(PendingWrites.size() == 0){
+            printf("vector is empty\n");
+            return -1;
+        }
+
+        vector<WriteRequest>::const_iterator it = PendingWrites.begin();
+        while(it != PendingWrites.end()){
+        std::cout << "retransmission(): while offset: " << it->offset()<<std::endl;
+            WriteResult wres;
+            ClientContext ctx; 
+            Status status = stub_->nfsfuse_retranswrite(&ctx, *it, &wres);
+            it++;
         }
         return 0;
     }
@@ -278,18 +449,36 @@ class NfsClient {
         CommitRequest commitReq;
         CommitResult commitRes;
         
+
         commitReq.set_fh(fh);
-        commitReq.set_firstoff(first_off);
-        commitReq.set_endoff(last_off);
+        commitReq.set_firstoff(PendingWrites.front().offset());
+        commitReq.set_endoff(PendingWrites.back().offset());
+        std::cout << "nfsfuse_commit() PendigWrites size: " << PendingWrites.size() <<std::endl;
+        std::cout << "nfsfuse_commit() firstoff: " << commitReq.firstoff()<<std::endl;
+        std::cout << "nfsfuse_commit() lastoff: " << PendingWrites.back().offset() <<std::endl;
 
         Status status = stub_->nfsfuse_commit(&ctx, commitReq, &commitRes);
+        while (!status.ok()) {
+
+            options.nfsclient = new NfsClient(grpc::CreateChannel("0.0.0.0:50051",
+                                              grpc::InsecureChannelCredentials()));
+            ClientContext ctx2;
+            status = stub_->nfsfuse_commit(&ctx2, commitReq, &commitRes);
+
+        }
+
         if(commitRes.err() != 0){
             // TODO retransmission mechanism
             // ASSUMPTION: during retransmission server is never crash again
 
             std::cout << "error: nfsfuse_commit() fails" << std::endl;
             int server_off = commitRes.serveroff();
-            int res = this->retransmission(server_off);
+            int res;
+            if(commitRes.err() == 2)
+                res = this->retransmissionall();
+            else
+                res = this->retransmission(server_off);
+                
             if(res != 0){
                 cout<<"erro: rpc_commit() retransmission fails"<<endl;
                 perror(strerror(errno));
@@ -307,11 +496,13 @@ class NfsClient {
             return 0;
 
         }else{
-            //assumming that if the code reach this point then commit is already acked
-            for(int i=0; i<PendingWrites.size(); i++){
+            //assumming that if the code reach this point then commit is already acked      
+            int bound = PendingWrites.size();
+            for(int i=0; i<bound; i++){
                 cout<<"Vector is pop. offset :"<<PendingWrites.back().offset()<<endl;
                 PendingWrites.pop_back();
             }
+            cout<<"Vector is pop. size :"<<PendingWrites.size()<<endl;
             return 0;
         }
         
