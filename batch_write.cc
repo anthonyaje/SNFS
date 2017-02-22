@@ -29,6 +29,8 @@ int main() {
 	for (i = 0; i < ROUND; i++) {
 		fout << message;
 	}
+	
+    fout<<"#################### END";
 	fout.close();
 
 	gettimeofday(&tv, NULL);
