@@ -8,6 +8,7 @@
 #include <fcntl.h>
 #include <vector>
 #include <grpc++/grpc++.h>
+#include <time.h>
 
 #include "nfsfuse.grpc.pb.h"
 
@@ -172,6 +173,8 @@ class NfsServiceImpl final : public NFS::Service {
         reply->set_nbytes(wr->size());
         reply->set_err(0);
 
+        sleep(5);
+		
 /*
         int fd = open(path, O_WRONLY);
 		cout<<"[DEBUG] : nfsfuse_write: path "<<path<<endl;

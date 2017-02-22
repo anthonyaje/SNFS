@@ -21,6 +21,13 @@ struct sdata{
 
 vector<WriteRequest> PendingWrites;
 
+class NfsClient;
+
+struct Options {
+    NfsClient* nfsclient;
+    int show_help;
+} options;
+
 class NfsClient {
  public:
   NfsClient(std::shared_ptr<Channel> channel)
@@ -94,6 +101,16 @@ class NfsClient {
         fi_req.set_flags(fi->flags);
         
         status = stub_->nfsfuse_open(&ctx, fi_req, &fi_res);
+/*
+        while (!status.ok()) {
+            options.nfsclient = new NfsClient(grpc::CreateChannel("0.0.0.0:50051",
+                                              grpc::InsecureChannelCredentials()));
+
+
+            status = stub_->nfsfuse_open(&ctx, fi_req, &fi_res);
+            sleep(5);
+        }
+*/
         if(fi_res.err() == 0)
             fi->fh = fi_res.fh();
 
@@ -134,7 +151,31 @@ class NfsClient {
         
         WriteResult wres;
 
+
+        cout << "stub->write begins!" << endl;
+
         Status status = stub_->nfsfuse_write(&ctx, wreq, &wres);
+
+        while (!status.ok()) {
+
+            cout << "options new begin" << endl;
+			sleep(8);
+            options.nfsclient = new NfsClient(grpc::CreateChannel("0.0.0.0:50051",
+                                              grpc::InsecureChannelCredentials()));
+			cout << "options end" << endl;
+			ClientContext ctx2;
+            status = stub_->nfsfuse_write(&ctx2, wreq, &wres);
+
+
+            cout << "stub function end" << endl;
+            sleep(5);
+        }
+
+
+
+
+        cout << "stub->write ends!!!" << endl;
+
         if(wres.err() == 0){
             return wres.nbytes();
         } else{

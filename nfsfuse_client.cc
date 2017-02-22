@@ -27,13 +27,10 @@
 
 #include "NfsClient.h"
 
-static struct options {	
-	NfsClient* nfsclient;
-	int show_help;
-} options;
+//struct Options options;
 
 #define OPTION(t, p)                           \
-    { t, offsetof(struct options, p), 1 }
+    { t, offsetof(struct Options, p), 1 }
 static const struct fuse_opt option_spec[] = {
 	OPTION("-h", show_help),
 	OPTION("--help", show_help),
