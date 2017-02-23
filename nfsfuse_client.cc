@@ -1,18 +1,4 @@
-/** @file
- *
- * minimal example filesystem using high-level API
- *
- * Compile with:
- *
- *     g++ -Wall client.cc `pkg-config fuse3 --cflags --libs` -o client -std=c++11
- *
- * ## Source code ##
- * \include client.c
- */
-
 #define FUSE_USE_VERSION 30
-
-//#include <config.h>
 
 #include <fuse.h>
 #include <stdio.h>
@@ -48,7 +34,6 @@ static void show_help(const char *progname)
 static void *client_init(struct fuse_conn_info *conn, 
 				struct fuse_config *cfg){
     (void) conn;
-    //cfg->kernel_cache = 1;
     return NULL;
 }
 
@@ -112,10 +97,6 @@ static int client_rename(const char *from, const char *to, unsigned int flags)
 static int client_utimens(const char *path, const struct timespec ts[2],
 		       struct fuse_file_info *fi)
 {
-    cout << "ts0 sec:" << ts[0].tv_sec << endl;
-    cout << "ts0 nsec:" << ts[0].tv_nsec << endl;
-    cout << "ts1 sec:" << ts[1].tv_sec << endl;
-    cout << "ts1 nsec:" << ts[1].tv_nsec << endl;
 
     return options.nfsclient->rpc_utimens(path, ts, fi);
 }
@@ -140,10 +121,7 @@ static struct client_operations : fuse_operations {
 	rename = client_rename;
 	utimens = client_utimens;
 	mknod = client_mknod;
-	/*
-        flush   = client_flush;
-        release = client_release;
-	*/
+
     }
 
 } client_oper;
@@ -153,7 +131,6 @@ static struct client_operations : fuse_operations {
 int main(int argc, char* argv[]){
 
 	struct fuse_args args = FUSE_ARGS_INIT(argc, argv);
-	//umask(0);
 
 	options.nfsclient = new NfsClient(grpc::CreateChannel(
   "0.0.0.0:50051", grpc::InsecureChannelCredentials()));

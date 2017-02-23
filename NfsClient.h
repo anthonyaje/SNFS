@@ -42,7 +42,6 @@ class NfsClient {
         output->st_nlink = result.nlink();
         output->st_uid = result.uid();
         output->st_gid = result.gid();
-        //output->st_rdev = result.rdev();
         output->st_size = result.size();
         output->st_blksize = result.blksize();
         output->st_blocks = result.blocks();
@@ -80,7 +79,7 @@ class NfsClient {
 
         status = reader->Finish();	
 
-        return -result.err(); // it's fine -0 is  0
+        return -result.err(); 
     }
 
     int rpc_open(const char* path, struct fuse_file_info* fi){

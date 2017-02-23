@@ -11,7 +11,7 @@
 
 #include "nfsfuse.grpc.pb.h"
 
-#define READ_MAX    10000000 //10MB
+#define READ_MAX    10000000
 
 using grpc::Server;
 using grpc::ServerBuilder;
@@ -55,7 +55,7 @@ class NfsServiceImpl final : public NFS::Service {
             reply->set_nlink(st.st_nlink);
             reply->set_uid(st.st_uid);
             reply->set_gid(st.st_gid);
-            //reply->set_rdev(st.st_rdev);
+
             reply->set_size(st.st_size);
             reply->set_blksize(st.st_blksize);
             reply->set_blocks(st.st_blocks);
@@ -225,7 +225,7 @@ class NfsServiceImpl final : public NFS::Service {
 		
             char server_path[512]={0};
             translatePath(input->s().c_str(), server_path);
-            cout << "server path: " << server_path << endl;
+
             int res = mkdir(server_path, input->mode());
 		
 
@@ -246,7 +246,7 @@ class NfsServiceImpl final : public NFS::Service {
 
             char server_path[512]={0};
             translatePath(input->str().c_str(), server_path);
-            cout << "server path: " << server_path << endl;
+
             int res = rmdir(server_path);
 
 
@@ -295,8 +295,7 @@ class NfsServiceImpl final : public NFS::Service {
         char to_path[512] = {0};
         translatePath(input->fp().c_str(), from_path);
  	    translatePath(input->tp().c_str(), to_path);
-        cout << "from path: " << from_path << endl;
-        cout << "to path: " << to_path << endl;
+
 
 	    int res = rename(from_path, to_path);
         if (res == -1) {
@@ -313,41 +312,23 @@ class NfsServiceImpl final : public NFS::Service {
     Status nfsfuse_utimens(ServerContext* context, const UtimensRequest* input,
                                          OutputInfo* reply) override {
         cout<<"[DEBUG] : utimens " << endl;
-	cout << "long size: " << sizeof(long) << endl;
-	cout << "time_t size: " << sizeof(time_t) << endl;
-        
+
 	char server_path[512]={0};
         translatePath(input->path().c_str(), server_path);
-        cout << "server path: " << server_path << endl;
-
 
 
         struct timespec ts[2];
 	long oo;
 	int ii;
 
-	cout << "sec type: " << typeid(ts[0].tv_sec).name() << endl;
-        cout << "nsec type: " << typeid(ts[0].tv_nsec).name() << endl;
-	cout << "long type: " << typeid(oo).name() << endl;
-	cout << "int type: " << typeid(ii).name() << endl;	
-
 	ts[0].tv_sec = input->sec();
 	ts[0].tv_nsec = input->nsec();
-	//ts[0].tv_nsec = UTIME_NOW;
+
 	ts[1].tv_sec = input->sec2();
 	ts[1].tv_nsec = input->nsec2();
-	//ts[1].tv_nsec = UTIME_NOW;
-
-	//ts[0].tv_sec = 100;
-	//ts[0].tv_nsec = 1000;
-	//ts[1].tv_sec = 200;
-	//ts[1].tv_nsec = 2000;
-
-	cout << "ts[0]:" << ts[0].tv_sec << "  " << ts[0].tv_nsec << endl;
-        cout << "ts[1]:" << ts[1].tv_sec << "  " << ts[1].tv_nsec << endl;
 
         int res = utimensat(AT_FDCWD, server_path, ts, AT_SYMLINK_NOFOLLOW);
-        cout << "done  res:" << res << endl;
+
 
 	if (res == -1) {
             perror(strerror(errno));
@@ -364,13 +345,12 @@ class NfsServiceImpl final : public NFS::Service {
 
         char server_path[512]={0};
         translatePath(input->path().c_str(), server_path);
-        cout << "server path: " << server_path << endl;
 
 	    mode_t mode = input->mode();
 	    dev_t rdev = input->rdev();
 
 	    int res;
-        //fixme do u forget res = open()?
+
 	    if (S_ISFIFO(mode))
 		    res = mkfifo(server_path, mode);
 	    else
@@ -392,17 +372,14 @@ void RunServer() {
   NfsServiceImpl service;
 
   ServerBuilder builder;
-  // Listen on the given address without any authentication mechanism.
+
   builder.AddListeningPort(server_address, grpc::InsecureServerCredentials());
-  // Register "service" as the instance through which we'll communicate with
-  // clients. In this case it corresponds to an *synchronous* service.
+
   builder.RegisterService(&service);
-  // Finally assemble the server.
+
   std::unique_ptr<Server> server(builder.BuildAndStart());
   std::cout << "Server listening on " << server_address << std::endl;
 
-  // Wait for the server to shutdown. Note that some other thread must be
-  // responsible for shutting down the server for this call to ever return.
   server->Wait();
 }
 
