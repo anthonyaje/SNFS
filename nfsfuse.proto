@@ -24,8 +24,7 @@ message Stat {
     int32   mode = 3;   // protection 
     uint32   nlink = 4;    // number of hard links 
     uint32     uid = 5;     // user ID of owner 
-    uint32     gid = 6;     // group ID of owner 
-//    uint32     st_rdev=13;    // device ID (if special file) 
+    uint32     gid = 6;     // group ID of owner  
     sint64     size = 7;    // total size, in bytes 
     sint64 blksize = 8; // blocksize for file system I/O 
     sint64  blocks = 9;  // number of 512B blocks allocated 
