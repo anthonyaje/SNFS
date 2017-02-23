@@ -30,7 +30,6 @@ int main() {
 		fout << message;
 	}
     fout<<"#################### END";
-    //probably take timestamp here because we tolerates the disk write latenct to close();
 	fout.close();
 
 	gettimeofday(&tv, NULL);

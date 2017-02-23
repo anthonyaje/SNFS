@@ -13,7 +13,7 @@
 
 #include "nfsfuse.grpc.pb.h"
 
-#define READ_MAX    10000000 //10MB
+#define READ_MAX    10000000 
 
 using grpc::Server;
 using grpc::ServerBuilder;
@@ -61,7 +61,6 @@ class NfsServiceImpl final : public NFS::Service {
             reply->set_nlink(st.st_nlink);
             reply->set_uid(st.st_uid);
             reply->set_gid(st.st_gid);
-            //reply->set_rdev(st.st_rdev);
             reply->set_size(st.st_size);
             reply->set_blksize(st.st_blksize);
             reply->set_blocks(st.st_blocks);
@@ -136,11 +135,10 @@ class NfsServiceImpl final : public NFS::Service {
         char path[512];
         char *buf = new char[rr->size()];
         translatePath(rr->path().c_str(), path);
-		cout<<"[DEBUG] : nfsfuse_read: "<<path<<endl;
 
 
         int fd = open(path, O_RDONLY);
-		cout<<"[DEBUG] : nfsfuse_read: fd "<<fd<<endl;
+
         if (fd == -1){
             reply->set_err(errno);
 		    perror(strerror(errno));
@@ -172,34 +170,9 @@ class NfsServiceImpl final : public NFS::Service {
 		cout<<"[DEBUG] : nfsfuse_write:"<<endl;
         WriteRequest WR(*wr);
         PendingWrites.push_back(WR);
-        cout<<"Vector is pushed. offset :"<<PendingWrites.back().offset()<<endl;
+
         reply->set_nbytes(wr->size());
         reply->set_err(0);
-		
-/*
-        int fd = open(path, O_WRONLY);
-		cout<<"[DEBUG] : nfsfuse_write: path "<<path<<endl;
-		cout<<"[DEBUG] : nfsfuse_write: fd "<<fd<<endl;
-        if(fd == -1){
-            reply->set_err(errno);
-            perror(strerror(errno));
-            return Status::OK;
-        } 
-
-        int res = pwrite(fd, wr->buffer().c_str(), wr->size(), wr->offset());
-		cout<<"[DEBUG] : nfsfuse_write: res"<<res<<endl;
-        if(res == -1){
-            reply->set_err(errno);
-            perror(strerror(errno));
-            return Status::OK;
-        }
-        
-        reply->set_nbytes(res);
-        reply->set_err(0);
-    
-        if(fd>0)
-            close(fd);
-*/
 
         return Status::OK;
     }
@@ -211,7 +184,6 @@ class NfsServiceImpl final : public NFS::Service {
         cout<<"[DEBUG] : nfsfuse_retranswrite:"<<endl;
         WriteRequest WR(*wr);
         RetransWrites.push_back(WR);
-        cout<<"Retrans Vector is pushed. offset :"<<RetransWrites.back().offset()<<endl;
         reply->set_nbytes(wr->size());
         reply->set_err(0);
 
@@ -251,7 +223,7 @@ class NfsServiceImpl final : public NFS::Service {
 		
             char server_path[512]={0};
             translatePath(input->s().c_str(), server_path);
-            cout << "server path: " << server_path << endl;
+
             int res = mkdir(server_path, input->mode());
 		
 
@@ -272,7 +244,7 @@ class NfsServiceImpl final : public NFS::Service {
 
             char server_path[512]={0};
             translatePath(input->str().c_str(), server_path);
-            cout << "server path: " << server_path << endl;
+
             int res = rmdir(server_path);
 
 
@@ -294,7 +266,7 @@ class NfsServiceImpl final : public NFS::Service {
 
             char server_path[512]={0};
             translatePath(input->str().c_str(), server_path);
-            cout << "server path: " << server_path << endl;
+
             int res = unlink(server_path);
             if (res == -1) {
                 perror(strerror(errno));
@@ -321,9 +293,6 @@ class NfsServiceImpl final : public NFS::Service {
         char to_path[512] = {0};
         translatePath(input->fp().c_str(), from_path);
  	    translatePath(input->tp().c_str(), to_path);
-        cout << "from path: " << from_path << endl;
-        cout << "to path: " << to_path << endl;
-
 	    int res = rename(from_path, to_path);
         if (res == -1) {
             perror(strerror(errno));
@@ -339,41 +308,26 @@ class NfsServiceImpl final : public NFS::Service {
     Status nfsfuse_utimens(ServerContext* context, const UtimensRequest* input,
                                          OutputInfo* reply) override {
         cout<<"[DEBUG] : utimens " << endl;
-	cout << "long size: " << sizeof(long) << endl;
-	cout << "time_t size: " << sizeof(time_t) << endl;
-        
+
 	char server_path[512]={0};
         translatePath(input->path().c_str(), server_path);
-        cout << "server path: " << server_path << endl;
 
 
 
         struct timespec ts[2];
 	long oo;
 	int ii;
-
-	cout << "sec type: " << typeid(ts[0].tv_sec).name() << endl;
-        cout << "nsec type: " << typeid(ts[0].tv_nsec).name() << endl;
-	cout << "long type: " << typeid(oo).name() << endl;
-	cout << "int type: " << typeid(ii).name() << endl;	
+	
 
 	ts[0].tv_sec = input->sec();
 	ts[0].tv_nsec = input->nsec();
-	//ts[0].tv_nsec = UTIME_NOW;
+
 	ts[1].tv_sec = input->sec2();
 	ts[1].tv_nsec = input->nsec2();
-	//ts[1].tv_nsec = UTIME_NOW;
 
-	//ts[0].tv_sec = 100;
-	//ts[0].tv_nsec = 1000;
-	//ts[1].tv_sec = 200;
-	//ts[1].tv_nsec = 2000;
-
-	cout << "ts[0]:" << ts[0].tv_sec << "  " << ts[0].tv_nsec << endl;
-        cout << "ts[1]:" << ts[1].tv_sec << "  " << ts[1].tv_nsec << endl;
 
         int res = utimensat(AT_FDCWD, server_path, ts, AT_SYMLINK_NOFOLLOW);
-        cout << "done  res:" << res << endl;
+     
 
 	if (res == -1) {
             perror(strerror(errno));
@@ -396,7 +350,7 @@ class NfsServiceImpl final : public NFS::Service {
 	    dev_t rdev = input->rdev();
 
 	    int res;
-        //fixme do u forget res = open()?
+
 	    if (S_ISFIFO(mode))
 		    res = mkfifo(server_path, mode);
 	    else
@@ -414,15 +368,12 @@ class NfsServiceImpl final : public NFS::Service {
     Status nfsfuse_commit(ServerContext* context, const CommitRequest* input,
                         CommitResult* reply) override {
         cout<<"[DEBUG] server: nfsfuse_commit " << endl;
-        //sleep(3);
+
         char path[512] = {0};
         string accumulate;
         int start_offset;
         unsigned int total_size = 0; 
-        
-        //FIXME after restart vector is zero too! 
-        // possible fix: add && read-ed flag
-         
+
         if ((PendingWrites.size() == 0) && flag_read) {
         cout<<"[DEBUG] server: nfsfuse_commit: pending 0 after read" << endl;
             close(input->fh());
@@ -449,7 +400,7 @@ class NfsServiceImpl final : public NFS::Service {
         }
         else if(input->firstoff() != PendingWrites.begin()->offset()){
         cout<<"[DEBUG] server: nfsfuse_commit: offset not equal " << endl;
-            //FIXME ask for retransmission  
+ 
             reply->set_serveroff(PendingWrites.begin()->offset());
             reply->set_err(-1);
             return Status::OK;
@@ -461,7 +412,6 @@ class NfsServiceImpl final : public NFS::Service {
             
         }
 
-        //todo fsync and release vector
         for(int i=0; i<PendingWrites.size(); i++){    
             accumulate.append(PendingWrites.at(i).buffer());
             total_size += PendingWrites.at(i).size();
@@ -476,7 +426,6 @@ class NfsServiceImpl final : public NFS::Service {
             return Status::OK;
         } 
         
-        //int fd = input->fh();
         int res = pwrite(fd, accumulate.c_str(), total_size, start_offset);
 		cout<<"[DEBUG] : nfsfuse_write: BATCH res"<<res<<endl;
         if(res == -1){
@@ -487,24 +436,18 @@ class NfsServiceImpl final : public NFS::Service {
 
         fsync(fd);
         close(fd);
-        //res = close(input->fh());
+
         int bound = PendingWrites.size();
         for(int i=0; i<bound; i++){
-            cout<<"Pending Vector is pop. offset :"<<PendingWrites.back().offset()<<endl;
             PendingWrites.pop_back();
         }
         
         bound = RetransWrites.size();
         for(int i=0; i<bound; i++){
-            cout<<"Retransmit Vector is pop. offset :"<<RetransWrites.back().offset()<<endl;
             RetransWrites.pop_back();
         }
         
-        cout<<"Pending Vector after pop. size :"<<PendingWrites.size()<<endl;
-        cout<<"Retransmit Vector after pop. size :"<<RetransWrites.size()<<endl;
 
-    
-        //reply->set_nbytes(res);
 	    reply->set_err(0);
         return Status::OK;
     }
