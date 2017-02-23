@@ -5,10 +5,10 @@
 using namespace std;
 
 
-#define ROUND 100
+#define ROUND 1024
 
 
-char message[500];
+char message[1024];
 
 int main() {
 
@@ -18,7 +18,7 @@ int main() {
 	
 	int i,j;
 
-	for (i = 0; i < 500; i++)
+	for (i = 0; i < 1024; i++)
 		message[i] = 'a';
 
 
@@ -29,13 +29,12 @@ int main() {
 	for (i = 0; i < ROUND; i++) {
 		fout << message;
 	}
-    fout<<"#################### END";
-    //probably take timestamp here because we tolerates the disk write latenct to close();
-	fout.close();
+    	fout<<"#################### END";
+   	fout.close();
 
 	gettimeofday(&tv, NULL);
 	t2 = 1000000*tv.tv_sec + tv.tv_usec;	
-    elapse_time = (float) (t2-t1) / (1000);
+    	elapse_time = (float) (t2-t1) / (1000);
 
 	cout << "Elapsed time: " << elapse_time << " ms" << endl;
 

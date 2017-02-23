@@ -61,7 +61,6 @@ class NfsClient {
         output->st_nlink = result.nlink();
         output->st_uid = result.uid();
         output->st_gid = result.gid();
-        //output->st_rdev = result.rdev();
         output->st_size = result.size();
         output->st_blksize = result.blksize();
         output->st_blocks = result.blocks();
@@ -102,7 +101,7 @@ class NfsClient {
 
         status = reader->Finish();	
 
-        return -result.err(); // it's fine -0 is  0
+        return -result.err();
     }
 
     int rpc_open(const char* path, struct fuse_file_info* fi){
@@ -171,35 +170,24 @@ class NfsClient {
         wreq.set_buffer(buf);
         
         PendingWrites.push_back(wreq);
-        cout<<"Vector is pushed. offset :"<<PendingWrites.back().offset()<<endl;
-        cout<<"Vector is pushed. size :"<<PendingWrites.back().size()<<endl;
-        
+
         WriteResult wres;
 
-
-        cout << "stub->write begins!" << endl;
 
         Status status = stub_->nfsfuse_write(&ctx, wreq, &wres);
 
         while (!status.ok()) {
 
-            cout << "options new begin" << endl;
-		//	sleep(8);
             options.nfsclient = new NfsClient(grpc::CreateChannel("0.0.0.0:50051",
                                               grpc::InsecureChannelCredentials()));
-			cout << "options end" << endl;
-			ClientContext ctx2;
+		
+	    ClientContext ctx2;
             status = stub_->nfsfuse_write(&ctx2, wreq, &wres);
 
 
-            cout << "stub function end" << endl;
-          //  sleep(5);
+
         }
 
-
-
-
-        cout << "stub->write ends!!!" << endl;
 
         if(wres.err() == 0){
             return wres.nbytes();
@@ -413,7 +401,7 @@ class NfsClient {
 
         vector<WriteRequest>::const_iterator it = PendingWrites.begin();
         while(it != PendingWrites.end()){
-        std::cout << "retransmission(): while offset: " << it->offset()<<std::endl;
+
             WriteResult wres;
             ClientContext ctx;
             if(it->offset() == end_offset)
@@ -433,7 +421,6 @@ class NfsClient {
 
         vector<WriteRequest>::const_iterator it = PendingWrites.begin();
         while(it != PendingWrites.end()){
-        std::cout << "retransmission(): while offset: " << it->offset()<<std::endl;
             WriteResult wres;
             ClientContext ctx; 
             Status status = stub_->nfsfuse_retranswrite(&ctx, *it, &wres);
@@ -453,9 +440,6 @@ class NfsClient {
         commitReq.set_fh(fh);
         commitReq.set_firstoff(PendingWrites.front().offset());
         commitReq.set_endoff(PendingWrites.back().offset());
-        std::cout << "nfsfuse_commit() PendigWrites size: " << PendingWrites.size() <<std::endl;
-        std::cout << "nfsfuse_commit() firstoff: " << commitReq.firstoff()<<std::endl;
-        std::cout << "nfsfuse_commit() lastoff: " << PendingWrites.back().offset() <<std::endl;
 
         Status status = stub_->nfsfuse_commit(&ctx, commitReq, &commitRes);
         while (!status.ok()) {
@@ -468,10 +452,7 @@ class NfsClient {
         }
 
         if(commitRes.err() != 0){
-            // TODO retransmission mechanism
-            // ASSUMPTION: during retransmission server is never crash again
-
-            std::cout << "error: nfsfuse_commit() fails" << std::endl;
+ 
             int server_off = commitRes.serveroff();
             int res;
             if(commitRes.err() == 2)
@@ -499,10 +480,8 @@ class NfsClient {
             //assumming that if the code reach this point then commit is already acked      
             int bound = PendingWrites.size();
             for(int i=0; i<bound; i++){
-                cout<<"Vector is pop. offset :"<<PendingWrites.back().offset()<<endl;
                 PendingWrites.pop_back();
             }
-            cout<<"Vector is pop. size :"<<PendingWrites.size()<<endl;
             return 0;
         }
         
