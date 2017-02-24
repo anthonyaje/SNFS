@@ -118,14 +118,14 @@ static int client_flush(const char *path, struct fuse_file_info *fi)
 
     (void) path;
 
-    cout<<"FLUSH is called !"<<endl;
+    //cout<<"FLUSH is called !"<<endl;
     return 0;
 }
 
 static int client_release(const char *path, struct fuse_file_info *fi)
 {
     (void) path;
-    cout<<"RELEASE is called !"<<endl;
+    //cout<<"RELEASE is called !"<<endl;
     return options.nfsclient->rpc_commit(fi->fh, PendingWrites.begin()->offset(), 
                 PendingWrites.end()->offset());
 }
