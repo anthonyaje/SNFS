@@ -52,7 +52,7 @@ class NfsClient {
         }
 
         if(result.err() != 0){
-            std::cout << "errno: " << result.err() << std::endl;
+            //std::cout << "errno: " << result.err() << std::endl;
             return -result.err();
         }
 
@@ -247,7 +247,7 @@ class NfsClient {
 
     
       if (result.err() != 0) {
-          std::cout << "error: nfsfuse_mkdir() fails" << std::endl;
+         // std::cout << "error: nfsfuse_mkdir() fails" << std::endl;
       }
 
       return -result.err();
@@ -273,7 +273,7 @@ class NfsClient {
 
 
       if (result.err() != 0) {
-          std::cout << "error: nfsfuse_rmdir() fails" << std::endl;
+          //std::cout << "error: nfsfuse_rmdir() fails" << std::endl;
       }
       return -result.err();
   }
@@ -300,7 +300,7 @@ class NfsClient {
 
 
       if (result.err() != 0) {
-          std::cout << "error: nfsfuse_unlink() fails" << std::endl;
+          //std::cout << "error: nfsfuse_unlink() fails" << std::endl;
       }
       return -result.err();
   }
@@ -327,7 +327,7 @@ class NfsClient {
 
 
       if (result.err() != 0) {
-          std::cout << "error: nfsfuse_rename() fails" << std::endl;
+         // std::cout << "error: nfsfuse_rename() fails" << std::endl;
       }
       return -result.err();
   }
@@ -358,7 +358,7 @@ class NfsClient {
 
 
       if (result.err() != 0) {
-          std::cout << "error: nfsfuse_utimens fails" << std::endl;
+         // std::cout << "error: nfsfuse_utimens fails" << std::endl;
       }
       return -result.err();
   }
@@ -386,7 +386,7 @@ class NfsClient {
 
 
       if (result.err() != 0) {
-          std::cout << "error: nfsfuse_mknod() fails" << std::endl;
+         // std::cout << "error: nfsfuse_mknod() fails" << std::endl;
       }
       return -result.err();
 
@@ -395,7 +395,7 @@ class NfsClient {
     int retransmission(int end_offset){
         //std::cout << "retransmission(): " << std::endl;
         if(PendingWrites.size() == 0){
-            printf("vector is empty\n");
+           // printf("vector is empty\n");
             return -1;
         }
 
@@ -415,7 +415,7 @@ class NfsClient {
     int retransmissionall(){
         //std::cout << "retransmission(): " << std::endl;
         if(PendingWrites.size() == 0){
-            printf("vector is empty\n");
+          //  printf("vector is empty\n");
             return -1;
         }
 
@@ -461,7 +461,7 @@ class NfsClient {
                 res = this->retransmission(server_off);
                 
             if(res != 0){
-                cout<<"erro: rpc_commit() retransmission fails"<<endl;
+                //cout<<"erro: rpc_commit() retransmission fails"<<endl;
                 perror(strerror(errno));
                 return -1;
             }
@@ -469,7 +469,7 @@ class NfsClient {
             //res = this->rpc_commit(fh, first_off, server_off);
             res = this->rpc_commit(fh, first_off, last_off);
             if(res != 0){
-                cout<<"erro: this.rpc_commit() retransmission fails"<<endl;
+               // cout<<"erro: this.rpc_commit() retransmission fails"<<endl;
                 perror(strerror(errno));
                 return -1;
             }
