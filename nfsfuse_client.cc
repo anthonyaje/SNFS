@@ -109,7 +109,7 @@ static int client_flush(const char *path, struct fuse_file_info *fi)
 
     (void) path;
 
-    cout<<"FLUSH is called ! "<<endl;
+    //cout<<"FLUSH is called ! "<<endl;
     return 0;
 }
 

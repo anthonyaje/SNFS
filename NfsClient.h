@@ -393,7 +393,7 @@ class NfsClient {
   }
 
     int retransmission(int end_offset){
-        std::cout << "retransmission(): " << std::endl;
+        //std::cout << "retransmission(): " << std::endl;
         if(PendingWrites.size() == 0){
             printf("vector is empty\n");
             return -1;
@@ -413,7 +413,7 @@ class NfsClient {
     }
 
     int retransmissionall(){
-        std::cout << "retransmission(): " << std::endl;
+        //std::cout << "retransmission(): " << std::endl;
         if(PendingWrites.size() == 0){
             printf("vector is empty\n");
             return -1;
