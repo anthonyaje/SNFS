@@ -38,7 +38,7 @@ void translatePath(const char* client_path, char* server_path){
 class NfsServiceImpl final : public NFS::Service {
 	Status nfsfuse_getattr(ServerContext* context, const String* s, 
 					 Stat* reply) override {
-		cout<<"[DEBUG] : lstat: "<<s->str().c_str()<<endl;
+		//cout<<"[DEBUG] : lstat: "<<s->str().c_str()<<endl;
 
 		struct stat st;
 		char server_path[512]={0};
@@ -72,7 +72,7 @@ class NfsServiceImpl final : public NFS::Service {
 	
 	Status nfsfuse_readdir(ServerContext* context, const String* s,
 						ServerWriter<Dirent>* writer) override {
-		cout<<"[DEBUG] : readdir: "<<s->str().c_str()<<endl;
+		//cout<<"[DEBUG] : readdir: "<<s->str().c_str()<<endl;
 
 		DIR *dp;
 		struct dirent *de;
@@ -82,7 +82,7 @@ class NfsServiceImpl final : public NFS::Service {
 
 		dp = opendir(server_path);
 		if (dp == NULL){
-			cout<<"[DEBUG] : readdir: "<<"dp == NULL"<<endl;
+			//cout<<"[DEBUG] : readdir: "<<"dp == NULL"<<endl;
 			perror(strerror(errno));
 			directory.set_err(errno);
             return Status::OK;
@@ -107,12 +107,12 @@ class NfsServiceImpl final : public NFS::Service {
         char server_path[512] = {0};
         
         translatePath(fi_req->path().c_str(), server_path);
-		cout<<"[DEBUG] : nfsfuse_open: path "<<server_path<<endl;
-		cout<<"[DEBUG] : nfsfuse_open: flag "<<fi_req->flags()<<endl;
+		//cout<<"[DEBUG] : nfsfuse_open: path "<<server_path<<endl;
+		//cout<<"[DEBUG] : nfsfuse_open: flag "<<fi_req->flags()<<endl;
 
         int fh = open(server_path, fi_req->flags());
 
-		cout<<"[DEBUG] : nfsfuse_open: fh"<<fh<<endl;
+		//cout<<"[DEBUG] : nfsfuse_open: fh"<<fh<<endl;
         if(fh == -1){
             fi_reply->set_err(errno);            
         }
@@ -130,11 +130,11 @@ class NfsServiceImpl final : public NFS::Service {
         char path[512];
         char *buf = new char[rr->size()];
         translatePath(rr->path().c_str(), path);
-		cout<<"[DEBUG] : nfsfuse_read: "<<path<<endl;
+		//cout<<"[DEBUG] : nfsfuse_read: "<<path<<endl;
 
 
         int fd = open(path, O_RDONLY);
-		cout<<"[DEBUG] : nfsfuse_read: fd "<<fd<<endl;
+		//cout<<"[DEBUG] : nfsfuse_read: fd "<<fd<<endl;
         if (fd == -1){
             reply->set_err(errno);
 		    perror(strerror(errno));
@@ -165,8 +165,8 @@ class NfsServiceImpl final : public NFS::Service {
         char path[512] = {0};
         translatePath(wr->path().c_str(), path);
         int fd = open(path, O_WRONLY);
-		cout<<"[DEBUG] : nfsfuse_write: path "<<path<<endl;
-		cout<<"[DEBUG] : nfsfuse_write: fd "<<fd<<endl;
+		//cout<<"[DEBUG] : nfsfuse_write: path "<<path<<endl;
+		//cout<<"[DEBUG] : nfsfuse_write: fd "<<fd<<endl;
         if(fd == -1){
             reply->set_err(errno);
             perror(strerror(errno));
@@ -174,7 +174,7 @@ class NfsServiceImpl final : public NFS::Service {
         } 
 
         int res = pwrite(fd, wr->buffer().c_str(), wr->size(), wr->offset());
-		cout<<"[DEBUG] : nfsfuse_write: res"<<res<<endl;
+		//cout<<"[DEBUG] : nfsfuse_write: res"<<res<<endl;
 
         fsync(fd);
 
@@ -200,12 +200,12 @@ class NfsServiceImpl final : public NFS::Service {
         char server_path[512] = {0};
         translatePath(req->path().c_str(), server_path);
 
-        cout<<"[DEBUG] : nfsfuse_create: path "<<server_path<<endl;
-        cout<<"[DEBUG] : nfsfuse_create: flag "<<req->flags()<<endl;
+        //cout<<"[DEBUG] : nfsfuse_create: path "<<server_path<<endl;
+        //cout<<"[DEBUG] : nfsfuse_create: flag "<<req->flags()<<endl;
 
         int fh = open(server_path, req->flags(), req->mode());
 
-        cout<<"[DEBUG] : nfsfuse_create: fh"<<fh<<endl;
+        //cout<<"[DEBUG] : nfsfuse_create: fh"<<fh<<endl;
         if(fh == -1){
             reply->set_err(errno);
             return Status::OK;
@@ -221,7 +221,7 @@ class NfsServiceImpl final : public NFS::Service {
 
     Status nfsfuse_mkdir(ServerContext* context, const MkdirRequest* input,
                                          OutputInfo* reply) override {
-            cout<<"[DEBUG] : mkdir: " << endl;
+            //cout<<"[DEBUG] : mkdir: " << endl;
 		
             char server_path[512]={0};
             translatePath(input->s().c_str(), server_path);
@@ -242,7 +242,7 @@ class NfsServiceImpl final : public NFS::Service {
 
     Status nfsfuse_rmdir(ServerContext* context, const String* input,
                                          OutputInfo* reply) override {
-            cout<<"[DEBUG] : rmdir: " << endl;
+            //cout<<"[DEBUG] : rmdir: " << endl;
 
             char server_path[512]={0};
             translatePath(input->str().c_str(), server_path);
@@ -264,11 +264,11 @@ class NfsServiceImpl final : public NFS::Service {
 
     Status nfsfuse_unlink(ServerContext* context, const String* input,
                                          OutputInfo* reply) override {
-            cout<<"[DEBUG] : unlink " << endl;
+            //cout<<"[DEBUG] : unlink " << endl;
 
             char server_path[512]={0};
             translatePath(input->str().c_str(), server_path);
-            cout << "server path: " << server_path << endl;
+           // cout << "server path: " << server_path << endl;
             int res = unlink(server_path);
             if (res == -1) {
                 perror(strerror(errno));
@@ -282,7 +282,7 @@ class NfsServiceImpl final : public NFS::Service {
 
     Status nfsfuse_rename(ServerContext* context, const RenameRequest* input,
                                          OutputInfo* reply) override {
-            cout<<"[DEBUG] : rename " << endl;
+            //cout<<"[DEBUG] : rename " << endl;
 	    
 	    if (input->flag()) {
             perror(strerror(errno));
@@ -311,7 +311,7 @@ class NfsServiceImpl final : public NFS::Service {
 
     Status nfsfuse_utimens(ServerContext* context, const UtimensRequest* input,
                                          OutputInfo* reply) override {
-        cout<<"[DEBUG] : utimens " << endl;
+        //cout<<"[DEBUG] : utimens " << endl;
 
 	char server_path[512]={0};
         translatePath(input->path().c_str(), server_path);
@@ -341,7 +341,7 @@ class NfsServiceImpl final : public NFS::Service {
 
     Status nfsfuse_mknod(ServerContext* context, const MknodRequest* input,
                                          OutputInfo* reply) override {
-        cout<<"[DEBUG] : mknod " << endl;
+       // cout<<"[DEBUG] : mknod " << endl;
 
         char server_path[512]={0};
         translatePath(input->path().c_str(), server_path);
