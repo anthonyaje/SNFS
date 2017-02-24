@@ -33,7 +33,7 @@ class NfsClient {
 
         Status status = stub_->nfsfuse_getattr(&context, p, &result);
         if(result.err() != 0){
-            std::cout << "errno: " << result.err() << std::endl;
+            //std::cout << "errno: " << result.err() << std::endl;
             return -result.err();
         }
 
@@ -161,7 +161,7 @@ class NfsClient {
       Status status = stub_->nfsfuse_mkdir(&context, input, &result);
     
       if (result.err() != 0) {
-          std::cout << "error: nfsfuse_mkdir() fails" << std::endl;
+          //std::cout << "error: nfsfuse_mkdir() fails" << std::endl;
       }
 
       return -result.err();
@@ -176,7 +176,7 @@ class NfsClient {
       Status status = stub_->nfsfuse_rmdir(&context, input, &result);
 
       if (result.err() != 0) {
-          std::cout << "error: nfsfuse_rmdir() fails" << std::endl;
+          //std::cout << "error: nfsfuse_rmdir() fails" << std::endl;
       }
       return -result.err();
   }
@@ -191,7 +191,7 @@ class NfsClient {
 
       Status status = stub_->nfsfuse_unlink(&context, input, &result);
       if (result.err() != 0) {
-          std::cout << "error: nfsfuse_unlink() fails" << std::endl;
+          //std::cout << "error: nfsfuse_unlink() fails" << std::endl;
       }
       return -result.err();
   }
@@ -206,7 +206,7 @@ class NfsClient {
 
       Status status = stub_->nfsfuse_rename(&context, input, &result);
       if (result.err() != 0) {
-          std::cout << "error: nfsfuse_rename() fails" << std::endl;
+          //std::cout << "error: nfsfuse_rename() fails" << std::endl;
       }
       return -result.err();
   }
@@ -225,7 +225,7 @@ class NfsClient {
       OutputInfo result;
       Status status = stub_->nfsfuse_utimens(&context, input, &result);
       if (result.err() != 0) {
-          std::cout << "error: nfsfuse_utimens fails" << std::endl;
+          //std::cout << "error: nfsfuse_utimens fails" << std::endl;
       }
       return -result.err();
   }
@@ -241,7 +241,7 @@ class NfsClient {
 
       Status status = stub_->nfsfuse_mknod(&context, input, &result);
       if (result.err() != 0) {
-          std::cout << "error: nfsfuse_mknod() fails" << std::endl;
+          //std::cout << "error: nfsfuse_mknod() fails" << std::endl;
       }
       return -result.err();
 

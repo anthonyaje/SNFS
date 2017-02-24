@@ -46,7 +46,7 @@ class NfsServiceImpl final : public NFS::Service {
 		int res = lstat(server_path, &st);
         if(res == -1){
 		    perror(strerror(errno));
-            cout<<"errno: "<<errno<<endl;
+            //cout<<"errno: "<<errno<<endl;
 		    reply->set_err(errno);
 		}
 		else{
