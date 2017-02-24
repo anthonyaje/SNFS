@@ -44,7 +44,7 @@ void translatePath(const char* client_path, char* server_path){
 class NfsServiceImpl final : public NFS::Service {
 	Status nfsfuse_getattr(ServerContext* context, const String* s, 
 					 Stat* reply) override {
-		cout<<"[DEBUG] : lstat: "<<s->str().c_str()<<endl;
+		//cout<<"[DEBUG] : lstat: "<<s->str().c_str()<<endl;
 
 		struct stat st;
 		char server_path[512]={0};
@@ -77,7 +77,7 @@ class NfsServiceImpl final : public NFS::Service {
 	
 	Status nfsfuse_readdir(ServerContext* context, const String* s,
 						ServerWriter<Dirent>* writer) override {
-		cout<<"[DEBUG] : readdir: "<<s->str().c_str()<<endl;
+		//cout<<"[DEBUG] : readdir: "<<s->str().c_str()<<endl;
 
 		DIR *dp;
 		struct dirent *de;
@@ -87,7 +87,7 @@ class NfsServiceImpl final : public NFS::Service {
 
 		dp = opendir(server_path);
 		if (dp == NULL){
-			cout<<"[DEBUG] : readdir: "<<"dp == NULL"<<endl;
+			//cout<<"[DEBUG] : readdir: "<<"dp == NULL"<<endl;
 			perror(strerror(errno));
 			directory.set_err(errno);
             return Status::OK;
@@ -112,12 +112,12 @@ class NfsServiceImpl final : public NFS::Service {
         char server_path[512] = {0};
         
         translatePath(fi_req->path().c_str(), server_path);
-		cout<<"[DEBUG] : nfsfuse_open: path "<<server_path<<endl;
-		cout<<"[DEBUG] : nfsfuse_open: flag "<<fi_req->flags()<<endl;
+		//cout<<"[DEBUG] : nfsfuse_open: path "<<server_path<<endl;
+		//cout<<"[DEBUG] : nfsfuse_open: flag "<<fi_req->flags()<<endl;
 
         int fh = open(server_path, fi_req->flags());
 
-		cout<<"[DEBUG] : nfsfuse_open: fh"<<fh<<endl;
+		//cout<<"[DEBUG] : nfsfuse_open: fh"<<fh<<endl;
         if(fh == -1){
             fi_reply->set_err(errno);            
         }
@@ -135,11 +135,11 @@ class NfsServiceImpl final : public NFS::Service {
         char path[512];
         char *buf = new char[rr->size()];
         translatePath(rr->path().c_str(), path);
-		cout<<"[DEBUG] : nfsfuse_read: "<<path<<endl;
+		//cout<<"[DEBUG] : nfsfuse_read: "<<path<<endl;
 
 
         int fd = open(path, O_RDONLY);
-		cout<<"[DEBUG] : nfsfuse_read: fd "<<fd<<endl;
+		//cout<<"[DEBUG] : nfsfuse_read: fd "<<fd<<endl;
         if (fd == -1){
             reply->set_err(errno);
 		    perror(strerror(errno));
@@ -168,7 +168,7 @@ class NfsServiceImpl final : public NFS::Service {
     Status nfsfuse_write(ServerContext* context, const WriteRequest* wr, 
             WriteResult* reply) override {
         
-		cout<<"[DEBUG] : nfsfuse_write:"<<endl;
+		//cout<<"[DEBUG] : nfsfuse_write:"<<endl;
         WriteRequest WR(*wr);
         PendingWrites.push_back(WR);
         reply->set_nbytes(wr->size());
@@ -181,7 +181,7 @@ class NfsServiceImpl final : public NFS::Service {
     Status nfsfuse_retranswrite(ServerContext* context, const WriteRequest* wr,
             WriteResult* reply) override {
 
-        cout<<"[DEBUG] : nfsfuse_retranswrite:"<<endl;
+        //cout<<"[DEBUG] : nfsfuse_retranswrite:"<<endl;
         WriteRequest WR(*wr);
         RetransWrites.push_back(WR);
         reply->set_nbytes(wr->size());
@@ -198,12 +198,12 @@ class NfsServiceImpl final : public NFS::Service {
         char server_path[512] = {0};
         translatePath(req->path().c_str(), server_path);
 
-        cout<<"[DEBUG] : nfsfuse_create: path "<<server_path<<endl;
-        cout<<"[DEBUG] : nfsfuse_create: flag "<<req->flags()<<endl;
+        //cout<<"[DEBUG] : nfsfuse_create: path "<<server_path<<endl;
+        //cout<<"[DEBUG] : nfsfuse_create: flag "<<req->flags()<<endl;
 
         int fh = open(server_path, req->flags(), req->mode());
 
-        cout<<"[DEBUG] : nfsfuse_create: fh"<<fh<<endl;
+        //cout<<"[DEBUG] : nfsfuse_create: fh"<<fh<<endl;
         if(fh == -1){
             reply->set_err(errno);
             return Status::OK;
@@ -219,7 +219,7 @@ class NfsServiceImpl final : public NFS::Service {
 
     Status nfsfuse_mkdir(ServerContext* context, const MkdirRequest* input,
                                          OutputInfo* reply) override {
-            cout<<"[DEBUG] : mkdir: " << endl;
+            //cout<<"[DEBUG] : mkdir: " << endl;
 		
             char server_path[512]={0};
             translatePath(input->s().c_str(), server_path);
@@ -239,7 +239,7 @@ class NfsServiceImpl final : public NFS::Service {
 
     Status nfsfuse_rmdir(ServerContext* context, const String* input,
                                          OutputInfo* reply) override {
-            cout<<"[DEBUG] : rmdir: " << endl;
+            //cout<<"[DEBUG] : rmdir: " << endl;
 
             char server_path[512]={0};
             translatePath(input->str().c_str(), server_path);
@@ -261,11 +261,11 @@ class NfsServiceImpl final : public NFS::Service {
 
     Status nfsfuse_unlink(ServerContext* context, const String* input,
                                          OutputInfo* reply) override {
-            cout<<"[DEBUG] : unlink " << endl;
+           // cout<<"[DEBUG] : unlink " << endl;
 
             char server_path[512]={0};
             translatePath(input->str().c_str(), server_path);
-            cout << "server path: " << server_path << endl;
+           // cout << "server path: " << server_path << endl;
             int res = unlink(server_path);
             if (res == -1) {
                 perror(strerror(errno));
@@ -279,7 +279,7 @@ class NfsServiceImpl final : public NFS::Service {
 
     Status nfsfuse_rename(ServerContext* context, const RenameRequest* input,
                                          OutputInfo* reply) override {
-            cout<<"[DEBUG] : rename " << endl;
+            //cout<<"[DEBUG] : rename " << endl;
 	    
 	    if (input->flag()) {
             perror(strerror(errno));
@@ -307,7 +307,7 @@ class NfsServiceImpl final : public NFS::Service {
 
     Status nfsfuse_utimens(ServerContext* context, const UtimensRequest* input,
                                          OutputInfo* reply) override {
-        cout<<"[DEBUG] : utimens " << endl;        
+        //cout<<"[DEBUG] : utimens " << endl;        
 	char server_path[512]={0};
         translatePath(input->path().c_str(), server_path);
 
@@ -335,7 +335,7 @@ class NfsServiceImpl final : public NFS::Service {
 
     Status nfsfuse_mknod(ServerContext* context, const MknodRequest* input,
                                          OutputInfo* reply) override {
-        cout<<"[DEBUG] : mknod " << endl;
+        //cout<<"[DEBUG] : mknod " << endl;
 
         char server_path[512]={0};
         translatePath(input->path().c_str(), server_path);
@@ -361,7 +361,7 @@ class NfsServiceImpl final : public NFS::Service {
 
     Status nfsfuse_commit(ServerContext* context, const CommitRequest* input,
                         CommitResult* reply) override {
-        cout<<"[DEBUG] server: nfsfuse_commit " << endl;
+        //cout<<"[DEBUG] server: nfsfuse_commit " << endl;
      
         char path[512] = {0};
         string accumulate;
@@ -369,7 +369,7 @@ class NfsServiceImpl final : public NFS::Service {
         unsigned int total_size = 0; 
          
         if ((PendingWrites.size() == 0) && flag_read) {
-        cout<<"[DEBUG] server: nfsfuse_commit: pending 0 after read" << endl;
+        //cout<<"[DEBUG] server: nfsfuse_commit: pending 0 after read" << endl;
             close(input->fh());
             reply->set_err(0);
             flag_read = false;
@@ -378,13 +378,13 @@ class NfsServiceImpl final : public NFS::Service {
 
 
         if ((PendingWrites.size() == 0) && (RetransWrites.size() == 0) ){
-        cout<<"[DEBUG] server: nfsfuse_commit: pending size is 0 " << endl;
+        //cout<<"[DEBUG] server: nfsfuse_commit: pending size is 0 " << endl;
             reply->set_serveroff(input->endoff());
             reply->set_err(2);
             return Status::OK;
         }
         else if(RetransWrites.size() != 0){
-        cout<<"[DEBUG] server: nfsfuse_commit: retrans size != 0" << endl;
+        //cout<<"[DEBUG] server: nfsfuse_commit: retrans size != 0" << endl;
             translatePath(RetransWrites.begin()->path().c_str(), path);
             start_offset = RetransWrites.begin()->offset();
             for(int i=0; i<RetransWrites.size(); i++){    
@@ -393,14 +393,14 @@ class NfsServiceImpl final : public NFS::Service {
             }
         }
         else if(input->firstoff() != PendingWrites.begin()->offset()){
-        cout<<"[DEBUG] server: nfsfuse_commit: offset not equal " << endl;
+        //cout<<"[DEBUG] server: nfsfuse_commit: offset not equal " << endl;
        
             reply->set_serveroff(PendingWrites.begin()->offset());
             reply->set_err(-1);
             return Status::OK;
         } 
         else{
-        cout<<"[DEBUG] server: nfsfuse_commit: offset is equal " << endl;
+       // cout<<"[DEBUG] server: nfsfuse_commit: offset is equal " << endl;
             start_offset = PendingWrites.begin()->offset();
             translatePath(PendingWrites.begin()->path().c_str(), path);
             
@@ -413,9 +413,9 @@ class NfsServiceImpl final : public NFS::Service {
         }
         
         int fd = open(path, O_WRONLY);
-        cout<<"[DEBUG] : release open fd: "<<fd<< endl;
+        //cout<<"[DEBUG] : release open fd: "<<fd<< endl;
         if(fd == -1){
-            cout<<"[DEBUG] : batch open fails!"<<endl;
+            //cout<<"[DEBUG] : batch open fails!"<<endl;
             reply->set_err(errno);
             perror(strerror(errno));
             return Status::OK;
@@ -423,7 +423,7 @@ class NfsServiceImpl final : public NFS::Service {
         
   
         int res = pwrite(fd, accumulate.c_str(), total_size, start_offset);
-		cout<<"[DEBUG] : nfsfuse_write: BATCH res"<<res<<endl;
+		//cout<<"[DEBUG] : nfsfuse_write: BATCH res"<<res<<endl;
         if(res == -1){
             reply->set_err(errno);
             perror(strerror(errno));
@@ -435,18 +435,18 @@ class NfsServiceImpl final : public NFS::Service {
    
         int bound = PendingWrites.size();
         for(int i=0; i<bound; i++){
-            cout<<"Pending Vector is pop. offset :"<<PendingWrites.back().offset()<<endl;
+            //cout<<"Pending Vector is pop. offset :"<<PendingWrites.back().offset()<<endl;
             PendingWrites.pop_back();
         }
         
         bound = RetransWrites.size();
         for(int i=0; i<bound; i++){
-            cout<<"Retransmit Vector is pop. offset :"<<RetransWrites.back().offset()<<endl;
+            //cout<<"Retransmit Vector is pop. offset :"<<RetransWrites.back().offset()<<endl;
             RetransWrites.pop_back();
         }
         
-        cout<<"Pending Vector after pop. size :"<<PendingWrites.size()<<endl;
-        cout<<"Retransmit Vector after pop. size :"<<RetransWrites.size()<<endl;
+        //cout<<"Pending Vector after pop. size :"<<PendingWrites.size()<<endl;
+        //cout<<"Retransmit Vector after pop. size :"<<RetransWrites.size()<<endl;
 
     
 

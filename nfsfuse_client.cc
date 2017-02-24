@@ -125,7 +125,7 @@ static int client_flush(const char *path, struct fuse_file_info *fi)
 static int client_release(const char *path, struct fuse_file_info *fi)
 {
     (void) path;
-    cout<<"RELEASE is called !!!!!!!!!!!!!!!!!!!!!!!!! "<<endl;
+   // cout<<"RELEASE is called !!!!!!!!!!!!!!!!!!!!!!!!! "<<endl;
 //-------------------------------
 //	test server crash upon commit
     if (kill_times == 0) {
