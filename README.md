@@ -20,6 +20,7 @@ In order to evaluate SNFS, we measure the performance in terms of three aspects:
 
 ![Alt text](Report/batch-normal.png?raw=true "Comparison of Batch Write and (Normal) Write Through")    
 As is shown in Figure 2, the latency of writing operations decreases significantly when we use the batch-write optimization. With the growth in the size of a batch, the difference of the two I/O strategies becomes larger, indicating the overhead caused by small I/O operations We attribute this to the fact that batch write requires only one disk seek and one system call. Whereas in write through strategy, the number of both system calls and disk seeks increase proportionally to number of writes.    
+      
 
 ![Alt text](Report/nfs-comparison.png?raw=true "Overhead of FUSER and gRPC compared with Linux NFS")    
 We also compare the performance of SNFS with that of NFS4 Linux. The latency of writing an 10 MB file is measured. Figure 3 shows that the performance of SNFS is extremely poor with regard to the-facto NFS system. The extra time cost is caused by more stages of function calls (including kernel and userspace) in FUSE interface and message passing that require copying data must go through network stack of the both client and server in gRPC implementation. Although SNFS provides the interface that allows users to operate remote files in the same way as they do to local files. The performance of remote file operations are inevitably degraded.    
@@ -29,7 +30,8 @@ SNFS is a simulation of the Network File System, which allows users to operate r
  
 ## Build & Run    
 ### Building the project    
-./build    
+./make clean    
+./make    
 ### Running the server    
 mkdir ./server    
 ./nfsfuse_server    
