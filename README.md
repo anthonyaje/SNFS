@@ -1,4 +1,4 @@
-# Simple Network File System with FUSE and GRPC      
+# Simple Network File System (SNFS) with FUSE and GRPC      
 CS798-W17 Advanced Distributed Systems    
 Instructor: Prof. Samer Al-Kiswany    
 Group: Anthony, Zheyu Xu    
